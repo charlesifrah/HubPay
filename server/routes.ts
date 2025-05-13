@@ -17,10 +17,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Dashboard Overview
   app.get("/api/admin/dashboard", async (req, res) => {
     try {
-      const totalCommissions = await storage.getTotalCommissions();
-      const aeCommissions = await storage.getCommissionsByAE();
-      const recentUploads = await storage.getRecentUploads(10); // Get 10 most recent uploads
-      const pendingPayouts = await storage.getCommissionsByStatus("pending");
+      console.log("Fetching admin dashboard data");
+      
+      // Wrap each operation in try/catch to identify specific errors
+      let totalCommissions = { total: "0", count: 0 };
+      let aeCommissions = [];
+      let recentUploads = [];
+      let pendingPayouts = [];
+      
+      try {
+        totalCommissions = await storage.getTotalCommissions();
+        console.log("Total commissions:", totalCommissions);
+      } catch (err) {
+        console.error("Error getting total commissions:", err);
+      }
+      
+      try {
+        aeCommissions = await storage.getCommissionsByAE();
+        console.log("AE commissions:", aeCommissions);
+      } catch (err) {
+        console.error("Error getting AE commissions:", err);
+      }
+      
+      try {
+        recentUploads = await storage.getRecentUploads(10);
+        console.log("Recent uploads count:", recentUploads.length);
+      } catch (err) {
+        console.error("Error getting recent uploads:", err);
+      }
+      
+      try {
+        pendingPayouts = await storage.getCommissionsByStatus("pending");
+        console.log("Pending payouts count:", pendingPayouts.length);
+      } catch (err) {
+        console.error("Error getting pending payouts:", err);
+      }
 
       res.json({
         totalCommissions,
@@ -29,6 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingPayoutsCount: pendingPayouts.length
       });
     } catch (error) {
+      console.error("Admin dashboard error:", error);
       res.status(500).json({ message: "Error fetching admin dashboard data" });
     }
   });
