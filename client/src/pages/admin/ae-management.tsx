@@ -397,7 +397,7 @@ export default function AEManagementPage() {
             setInviteLink(null);
           }
         }}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md w-full sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>
                 {inviteLink ? 'Invitation Link Generated' : 'Invite Account Executive'}
@@ -446,13 +446,13 @@ export default function AEManagementPage() {
               <div className="space-y-4">
                 <div className="mt-2">
                   <div className="relative">
-                    <div className="p-3 bg-gray-50 rounded-md border font-mono text-xs overflow-x-auto">
+                    <div className="p-3 bg-gray-50 rounded-md border font-mono text-xs break-all overflow-hidden">
                       {inviteLink}
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="absolute right-2 top-2"
+                      className="absolute right-2 top-2 bg-white"
                       onClick={() => {
                         navigator.clipboard.writeText(inviteLink);
                         toast({
@@ -466,13 +466,15 @@ export default function AEManagementPage() {
                   </div>
                 </div>
                 
-                <Alert className="bg-blue-50 border-blue-200">
-                  <Info className="h-4 w-4 text-blue-500" />
-                  <AlertTitle>What happens next</AlertTitle>
-                  <AlertDescription className="text-sm">
-                    The Account Executive will use this link to set up their account and password.
-                    The link will expire in 24 hours.
-                  </AlertDescription>
+                <Alert className="bg-blue-50 border-blue-200 w-full max-w-full">
+                  <Info className="h-4 w-4 text-blue-500 shrink-0" />
+                  <div className="w-full">
+                    <AlertTitle className="text-sm font-medium">What happens next</AlertTitle>
+                    <AlertDescription className="text-xs mt-1">
+                      The Account Executive will use this link to set up their account and password.
+                      The link will expire in 24 hours.
+                    </AlertDescription>
+                  </div>
                 </Alert>
 
                 <DialogFooter className="pt-2">
