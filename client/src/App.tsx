@@ -14,6 +14,7 @@ import UploadContract from "@/pages/admin/upload-contract";
 import UploadInvoice from "@/pages/admin/upload-invoice";
 import PayoutApproval from "@/pages/admin/payout-approval";
 import Reports from "@/pages/admin/reports";
+import AEManagement from "@/pages/admin/ae-management";
 
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";

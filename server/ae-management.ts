@@ -134,7 +134,7 @@ export function setupAEManagementRoutes(app: Express) {
       if (updateData.status) dataToUpdate.status = updateData.status;
       
       // Update the user
-      const [updatedAE] = await db.update(users)
+      const updatedAEs = await db.update(users)
         .set(dataToUpdate)
         .where(eq(users.id, userId))
         .returning({
@@ -145,7 +145,7 @@ export function setupAEManagementRoutes(app: Express) {
           updatedAt: users.updatedAt
         });
       
-      res.status(200).json(updatedAE);
+      res.status(200).json(updatedAEs[0]);
     } catch (error) {
       console.error("Error updating AE:", error);
       res.status(500).json({ message: "Error updating account executive" });
@@ -222,7 +222,7 @@ export function setupAEManagementRoutes(app: Express) {
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + 72); // 72-hour expiration
       
-      const [invitation] = await db.insert(invitations)
+      const newInvitations = await db.insert(invitations)
         .values({
           email,
           token: inviteToken,
@@ -301,12 +301,14 @@ export function setupAEManagementRoutes(app: Express) {
       }
       
       // Find invitation by token
-      const [invitation] = await db.select().from(invitations)
+      const invites = await db.select().from(invitations)
         .where(eq(invitations.token, token));
       
-      if (!invitation) {
+      if (invites.length === 0) {
         return res.status(404).json({ message: "Invitation not found" });
       }
+      
+      const invitation = invites[0];
       
       if (invitation.used) {
         return res.status(400).json({ message: "Invitation has already been used" });
@@ -349,12 +351,14 @@ export function setupAEManagementRoutes(app: Express) {
       const { token, name, password } = validationResult.data;
       
       // Find invitation by token
-      const [invitation] = await db.select().from(invitations)
+      const invites = await db.select().from(invitations)
         .where(eq(invitations.token, token));
       
-      if (!invitation) {
+      if (invites.length === 0) {
         return res.status(404).json({ message: "Invitation not found" });
       }
+      
+      const invitation = invites[0];
       
       if (invitation.used) {
         return res.status(400).json({ message: "Invitation has already been used" });
@@ -365,7 +369,7 @@ export function setupAEManagementRoutes(app: Express) {
       }
       
       // Create new user
-      const [user] = await db.insert(users)
+      const newUsers = await db.insert(users)
         .values({
           email: invitation.email,
           name,
@@ -382,6 +386,7 @@ export function setupAEManagementRoutes(app: Express) {
         .where(eq(invitations.id, invitation.id));
       
       // Return user data (excluding password)
+      const user = newUsers[0];
       const userData = {
         id: user.id,
         email: user.email,
