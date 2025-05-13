@@ -113,6 +113,21 @@ export class MemStorage implements IStorage {
       name: "Sarah Johnson",
       role: "ae"
     });
+    
+    // Add user-specific accounts 
+    this.createUser({
+      email: "charlieifrah+admin@gmail.com",
+      password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
+      name: "Admin User",
+      role: "admin"
+    });
+    
+    this.createUser({
+      email: "charlieifrah@gmail.com",
+      password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
+      name: "Charlie Ifrah",
+      role: "ae"
+    });
   }
 
   // User operations
