@@ -3,12 +3,16 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { CommissionEngine } from "./commissionEngine";
+import { setupAEManagementRoutes } from "./ae-management";
 import { z } from "zod";
 import { insertContractSchema, insertInvoiceSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
+  
+  // Set up Account Executive management routes
+  setupAEManagementRoutes(app);
 
   // Admin Dashboard Overview
   app.get("/api/admin/dashboard", async (req, res) => {
