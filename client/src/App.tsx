@@ -19,12 +19,14 @@ import AEManagement from "@/pages/admin/ae-management";
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";
 import CommissionStatement from "@/pages/ae/commission-statement";
+import RegisterWithInvitation from "@/pages/ae/register-with-invitation";
 
 function Router() {
   return (
     <Switch>
-      {/* Auth Page */}
+      {/* Auth Pages */}
       <Route path="/auth" component={AuthPage} />
+      <Route path="/register" component={RegisterWithInvitation} />
       
       {/* Admin Routes */}
       <ProtectedRoute path="/" component={AdminDashboard} adminOnly={true} />
