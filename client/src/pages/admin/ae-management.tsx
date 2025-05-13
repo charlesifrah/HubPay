@@ -194,6 +194,8 @@ export default function AEManagementPage() {
     },
   });
 
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
   // Mutation for resetting an AE's password
   const resetPasswordMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -201,9 +203,10 @@ export default function AEManagementPage() {
       return await res.json();
     },
     onSuccess: (data) => {
+      setTempPassword(data.temporaryPassword);
       toast({
         title: 'Password reset successful',
-        description: `Temporary password: ${data.temporaryPassword}`,
+        description: 'A temporary password has been generated.',
       });
     },
     onError: (error: Error) => {
@@ -225,17 +228,32 @@ export default function AEManagementPage() {
     updateAEMutation.mutate(data);
   };
 
+  const [aeToDelete, setAeToDelete] = useState<number | null>(null);
+  const [aeToResetPassword, setAeToResetPassword] = useState<number | null>(null);
+
   // Function to handle AE deletion
   const handleDeleteAE = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this account executive?')) {
-      deleteAEMutation.mutate(id);
-    }
+    setAeToDelete(id);
   };
 
   // Function to handle password reset
   const handleResetPassword = (id: number) => {
-    if (window.confirm('Are you sure you want to reset the password for this account executive?')) {
-      resetPasswordMutation.mutate(id);
+    setAeToResetPassword(id);
+  };
+  
+  // Function to confirm deletion
+  const confirmDeleteAE = () => {
+    if (aeToDelete !== null) {
+      deleteAEMutation.mutate(aeToDelete);
+      setAeToDelete(null);
+    }
+  };
+  
+  // Function to confirm password reset
+  const confirmResetPassword = () => {
+    if (aeToResetPassword !== null) {
+      resetPasswordMutation.mutate(aeToResetPassword);
+      setAeToResetPassword(null);
     }
   };
 
@@ -277,6 +295,93 @@ export default function AEManagementPage() {
             </Button>
           </div>
         </div>
+        
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={aeToDelete !== null} onOpenChange={(open) => !open && setAeToDelete(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this account executive? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setAeToDelete(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteAE}
+                disabled={deleteAEMutation.isPending}
+              >
+                {deleteAEMutation.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Reset Password Confirmation Dialog */}
+        <Dialog 
+          open={aeToResetPassword !== null} 
+          onOpenChange={(open) => !open && setAeToResetPassword(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Password Reset</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to reset the password for this account executive?
+                A new temporary password will be generated.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setAeToResetPassword(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="default" 
+                onClick={confirmResetPassword}
+                disabled={resetPasswordMutation.isPending}
+              >
+                {resetPasswordMutation.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
+                Reset Password
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Temporary Password Dialog */}
+        <Dialog 
+          open={tempPassword !== null} 
+          onOpenChange={(open) => !open && setTempPassword(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Temporary Password Generated</DialogTitle>
+              <DialogDescription>
+                A temporary password has been generated for this account executive.
+                Please securely share this password with them.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4 p-4 bg-gray-100 rounded-md font-mono text-center">
+              {tempPassword}
+            </div>
+            <Alert variant="warning">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Security Notice</AlertTitle>
+              <AlertDescription>
+                This password should be changed immediately after the first login.
+              </AlertDescription>
+            </Alert>
+            <DialogFooter className="mt-4">
+              <Button onClick={() => setTempPassword(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Invite AE Dialog */}
         <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
