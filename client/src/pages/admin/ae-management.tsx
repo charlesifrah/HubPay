@@ -51,7 +51,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { formatDate } from '@/lib/utils';
-import { AlertTriangle, Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus } from 'lucide-react';
+import { AlertTriangle, Copy as CopyIcon, Info, Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -389,60 +389,105 @@ export default function AEManagementPage() {
         </Dialog>
 
         {/* Invite AE Dialog */}
-        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-          <DialogContent>
+        <Dialog open={showInviteDialog} onOpenChange={(open) => {
+          setShowInviteDialog(open);
+          if (!open) {
+            // Reset the form and invitation link when closing
+            inviteForm.reset();
+            setInviteLink(null);
+          }
+        }}>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Invite Account Executive</DialogTitle>
+              <DialogTitle>
+                {inviteLink ? 'Invitation Link Generated' : 'Invite Account Executive'}
+              </DialogTitle>
               <DialogDescription>
-                Send an invitation email to a new Account Executive.
+                {inviteLink 
+                  ? 'Share this secure link with the Account Executive to complete their registration.' 
+                  : 'Send an invitation email to a new Account Executive.'}
               </DialogDescription>
             </DialogHeader>
 
-            <Form {...inviteForm}>
-              <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-6">
-                <FormField
-                  control={inviteForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="email@example.com" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The email address to send the invitation to.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {inviteLink && (
-                  <Alert>
-                    <Mail className="h-4 w-4" />
-                    <AlertTitle>Invitation Link Generated</AlertTitle>
-                    <AlertDescription>
-                      <p className="mb-2">Share this link with the Account Executive:</p>
-                      <code className="p-2 bg-gray-100 rounded block overflow-x-auto">
-                        {inviteLink}
-                      </code>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <DialogFooter>
-                  <Button 
-                    type="submit" 
-                    disabled={inviteMutation.isPending}
-                  >
-                    {inviteMutation.isPending && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            {!inviteLink ? (
+              <Form {...inviteForm}>
+                <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-6">
+                  <FormField
+                    control={inviteForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="email@example.com" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          The email address to send the invitation to.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                    Send Invitation
+                  />
+
+                  <DialogFooter>
+                    <Button 
+                      type="submit" 
+                      disabled={inviteMutation.isPending}
+                    >
+                      {inviteMutation.isPending && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      Send Invitation
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            ) : (
+              <div className="space-y-4">
+                <div className="mt-2">
+                  <div className="relative">
+                    <div className="p-3 bg-gray-50 rounded-md border font-mono text-xs overflow-x-auto">
+                      {inviteLink}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="absolute right-2 top-2"
+                      onClick={() => {
+                        navigator.clipboard.writeText(inviteLink);
+                        toast({
+                          title: 'Copied to clipboard',
+                          description: 'Invitation link has been copied to your clipboard',
+                        });
+                      }}
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <Alert className="bg-blue-50 border-blue-200">
+                  <Info className="h-4 w-4 text-blue-500" />
+                  <AlertTitle>What happens next</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    The Account Executive will use this link to set up their account and password.
+                    The link will expire in 24 hours.
+                  </AlertDescription>
+                </Alert>
+
+                <DialogFooter className="pt-2">
+                  <Button 
+                    onClick={() => {
+                      setShowInviteDialog(false);
+                      setInviteLink(null);
+                      inviteForm.reset();
+                    }}
+                  >
+                    Done
                   </Button>
                 </DialogFooter>
-              </form>
-            </Form>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
