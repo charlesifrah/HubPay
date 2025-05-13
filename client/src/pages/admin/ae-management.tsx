@@ -176,6 +176,10 @@ export default function AEManagementPage() {
   const deleteAEMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest('DELETE', `/api/admin/account-executives/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to delete account executive');
+      }
       return await res.json();
     },
     onSuccess: () => {
@@ -183,7 +187,8 @@ export default function AEManagementPage() {
         title: 'Account executive deleted',
         description: 'The account executive has been successfully deleted.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/account-executives'] });
+      // Force refetch of the AEs list
+      refetchAEs();
     },
     onError: (error: Error) => {
       toast({
