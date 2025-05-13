@@ -259,7 +259,7 @@ export function setupAEManagementRoutes(app: Express) {
         .returning();
       
       // TODO: In a real application, send an email with the invitation link
-      const inviteLink = `${req.protocol}://${req.get('host')}/api/auth/register?token=${inviteToken}`;
+      const inviteLink = `${req.protocol}://${req.get('host')}/register-with-invitation?token=${inviteToken}`;
       
       res.status(201).json({ 
         message: "Invitation sent successfully",
@@ -354,6 +354,72 @@ export function setupAEManagementRoutes(app: Express) {
       res.status(500).json({ message: "Error validating invitation" });
     }
   });
+  
+  // Register with invitation
+  app.post("/api/auth/register-with-invitation", async (req, res) => {
+    try {
+      const { token, email, name, password } = req.body;
+      
+      if (!token || !email || !name || !password) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Find invitation by token
+      const invites = await db.select().from(invitations)
+        .where(eq(invitations.token, token));
+      
+      if (invites.length === 0) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      const invitation = invites[0];
+      
+      // Validate invitation
+      if (invitation.used) {
+        return res.status(400).json({ message: "Invitation has already been used" });
+      }
+      
+      if (new Date() > invitation.expires) {
+        return res.status(400).json({ message: "Invitation has expired" });
+      }
+      
+      // Verify that the email matches the invitation
+      if (invitation.email !== email) {
+        return res.status(400).json({ message: "Email does not match invitation" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+      
+      // Create the user
+      const newUser = await db.insert(users)
+        .values({
+          email,
+          name,
+          password: hashedPassword,
+          role: 'ae',
+          status: 'active'
+        })
+        .returning();
+      
+      // Mark invitation as used
+      await db.update(invitations)
+        .set({
+          used: true,
+          usedAt: new Date()
+        })
+        .where(eq(invitations.id, invitation.id));
+      
+      // Return success without exposing sensitive user data
+      res.status(201).json({ 
+        message: "Registration successful",
+        success: true
+      });
+    } catch (error) {
+      console.error("Error registering with invitation:", error);
+      res.status(500).json({ message: "Error during registration" });
+    }
+  });
 
   // Resend invitation
   app.post("/api/admin/resend-invitation/:id", adminOnly, async (req, res) => {
@@ -396,7 +462,7 @@ export function setupAEManagementRoutes(app: Express) {
         .where(eq(invitations.id, invitationId));
       
       // TODO: In a real application, send an email with the invitation link
-      const inviteLink = `${req.protocol}://${req.get('host')}/api/auth/register?token=${newToken}`;
+      const inviteLink = `${req.protocol}://${req.get('host')}/register-with-invitation?token=${newToken}`;
       
       res.status(200).json({ 
         message: "Invitation resent successfully",

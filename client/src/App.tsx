@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
+import RegisterWithInvitation from "@/pages/register-with-invitation";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -19,14 +20,13 @@ import AEManagement from "@/pages/admin/ae-management";
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";
 import CommissionStatement from "@/pages/ae/commission-statement";
-import RegisterWithInvitation from "@/pages/ae/register-with-invitation";
 
 function Router() {
   return (
     <Switch>
       {/* Auth Pages */}
       <Route path="/auth" component={AuthPage} />
-      <Route path="/register" component={RegisterWithInvitation} />
+      <Route path="/register-with-invitation" component={RegisterWithInvitation} />
       
       {/* Admin Routes */}
       <ProtectedRoute path="/" component={AdminDashboard} adminOnly={true} />
