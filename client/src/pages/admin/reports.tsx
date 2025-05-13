@@ -109,7 +109,7 @@ export default function Reports() {
 
   // Handle filter select change
   const handleFilterChange = (name: string, value: string) => {
-    if (value === "") {
+    if (value === "" || value === "all") {
       const newFilters = { ...filters };
       delete newFilters[name as keyof FilterOptions];
       setFilters(newFilters);
@@ -190,14 +190,14 @@ export default function Reports() {
               <div className="space-y-2">
                 <Label>Account Executive</Label>
                 <Select 
-                  value={filters.aeId || ""} 
+                  value={filters.aeId || "all"} 
                   onValueChange={(value) => handleFilterChange('aeId', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All AEs" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All AEs</SelectItem>
+                    <SelectItem value="all">All AEs</SelectItem>
                     {aes?.map((ae: any) => (
                       <SelectItem key={ae.id} value={ae.id.toString()}>
                         {ae.name}
@@ -218,7 +218,7 @@ export default function Reports() {
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="new">New Business</SelectItem>
                     <SelectItem value="renewal">Renewal</SelectItem>
                     <SelectItem value="upsell">Upsell</SelectItem>
