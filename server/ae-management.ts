@@ -58,7 +58,7 @@ export function setupAEManagementRoutes(app: Express) {
     }
   };
 
-  // Get all Account Executives
+  // Get all Account Executives (including pending invitations)
   app.get("/api/admin/account-executives", adminOnly, async (req, res) => {
     try {
       // Get all users with role 'ae'
@@ -66,16 +66,38 @@ export function setupAEManagementRoutes(app: Express) {
         .where(eq(users.role, 'ae'))
         .orderBy(users.name);
       
-      // Map to a safer response object (excluding password)
+      // Get all pending invitations
+      const pendingInvitations = await db.select().from(invitations)
+        .where(eq(invitations.used, false));
+      
+      // Map users to a safer response object (excluding password)
       const aeList = accountExecutives.map(ae => ({
         id: ae.id,
         name: ae.name,
         email: ae.email,
         status: ae.status,
-        createdAt: ae.createdAt
+        createdAt: ae.createdAt,
+        type: 'user'
       }));
       
-      res.status(200).json(aeList);
+      // Map pending invitations
+      const now = new Date();
+      const pendingList = pendingInvitations.map(invite => ({
+        id: invite.id,
+        name: 'Pending Registration',
+        email: invite.email,
+        status: now > invite.expires ? 'expired' : 'pending',
+        createdAt: invite.createdAt,
+        expires: invite.expires,
+        type: 'invitation'
+      }));
+      
+      // Combine both lists and sort by email
+      const combinedList = [...aeList, ...pendingList].sort((a, b) => 
+        a.email.localeCompare(b.email)
+      );
+      
+      res.status(200).json(combinedList);
     } catch (error) {
       console.error("Error fetching AEs:", error);
       res.status(500).json({ message: "Error fetching account executives" });
@@ -333,6 +355,83 @@ export function setupAEManagementRoutes(app: Express) {
     }
   });
 
+  // Resend invitation
+  app.post("/api/admin/resend-invitation/:id", adminOnly, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const invitationId = parseInt(id);
+      
+      // Find the invitation
+      const inviteResult = await db.select().from(invitations)
+        .where(eq(invitations.id, invitationId));
+      
+      if (inviteResult.length === 0) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      const invitation = inviteResult[0];
+      
+      if (invitation.used) {
+        return res.status(400).json({ message: "Invitation has already been used" });
+      }
+      
+      // Get admin ID from token
+      const authHeader = req.headers.authorization;
+      const token = authHeader!.split(' ')[1];
+      const adminId = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).id;
+      
+      // Generate new token and update expiration
+      const newToken = generateToken();
+      const newExpiration = new Date();
+      newExpiration.setHours(newExpiration.getHours() + 72); // 72-hour expiration
+      
+      // Update the invitation
+      await db.update(invitations)
+        .set({
+          token: newToken,
+          expires: newExpiration,
+          createdBy: adminId,
+          createdAt: new Date() // Update the creation date to reflect the resend
+        })
+        .where(eq(invitations.id, invitationId));
+      
+      // TODO: In a real application, send an email with the invitation link
+      const inviteLink = `${req.protocol}://${req.get('host')}/api/auth/register?token=${newToken}`;
+      
+      res.status(200).json({ 
+        message: "Invitation resent successfully",
+        inviteLink // We're including this in the response for testing/demo purposes
+      });
+    } catch (error) {
+      console.error("Error resending invitation:", error);
+      res.status(500).json({ message: "Error resending invitation" });
+    }
+  });
+
+  // Delete invitation
+  app.delete("/api/admin/invitations/:id", adminOnly, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const invitationId = parseInt(id);
+      
+      // Find the invitation
+      const inviteResult = await db.select().from(invitations)
+        .where(eq(invitations.id, invitationId));
+      
+      if (inviteResult.length === 0) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Delete the invitation
+      await db.delete(invitations).where(eq(invitations.id, invitationId));
+      
+      res.status(200).json({ message: "Invitation deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting invitation:", error);
+      res.status(500).json({ message: "Error deleting invitation" });
+    }
+  });
+  
   // Register with invitation token
   app.post("/api/auth/register-with-invitation", async (req, res) => {
     try {
