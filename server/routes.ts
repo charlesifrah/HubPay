@@ -70,11 +70,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload Contract (Admin)
   app.post("/api/admin/contracts", async (req, res) => {
     try {
+      console.log("Contract upload request body:", req.body);
+      
       const contractData = insertContractSchema.parse(req.body);
+      console.log("Parsed contract data:", contractData);
       
       // Verify AE exists
       const ae = await storage.getUser(contractData.aeId);
       if (!ae || ae.role !== 'ae') {
+        console.log("Invalid AE:", contractData.aeId, ae);
         return res.status(400).json({ message: "Invalid AE selected" });
       }
       
@@ -86,6 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contractId: contract.id
       });
     } catch (error) {
+      console.error("Contract creation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid contract data", errors: error.errors });
       }
