@@ -338,6 +338,8 @@ export default function AEManagementPage() {
         return 'bg-red-500 hover:bg-red-600';
       case 'pending':
         return 'bg-yellow-500 hover:bg-yellow-600';
+      case 'expired':
+        return 'bg-gray-400 hover:bg-gray-500';
       default:
         return 'bg-gray-500 hover:bg-gray-600';
     }
@@ -688,39 +690,76 @@ export default function AEManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {accountExecutives.map((ae: AccountExecutive) => (
-                    <TableRow key={ae.id}>
-                      <TableCell className="font-medium">{ae.name}</TableCell>
-                      <TableCell>{ae.email}</TableCell>
+                  {accountExecutives.map((entry) => (
+                    <TableRow key={`${entry.type}-${entry.id}`}>
+                      <TableCell className="font-medium">
+                        {entry.name}
+                        {entry.type === 'invitation' && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {entry.status === 'expired' ? 'Invitation Expired' : 'Invitation Pending'}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{entry.email}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadgeVariant(ae.status)}>
-                          {ae.status.charAt(0).toUpperCase() + ae.status.slice(1)}
+                        <Badge className={getStatusBadgeVariant(entry.status)}>
+                          {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(new Date(ae.createdAt))}</TableCell>
+                      <TableCell>{formatDate(new Date(entry.createdAt))}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditAE(ae)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleResetPassword(ae.id)}
-                          >
-                            Reset Password
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteAE(ae.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {entry.type === 'user' ? (
+                            // Action buttons for AE users
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditAE(entry as AccountExecutive)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResetPassword(entry.id)}
+                              >
+                                Reset Password
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteAE(entry.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            // Action buttons for Invitations
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => resendInvitationMutation.mutate(entry.id)}
+                                disabled={resendInvitationMutation.isPending}
+                              >
+                                {resendInvitationMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                ) : (
+                                  <RefreshCw className="h-4 w-4 mr-1" />
+                                )}
+                                {entry.status === 'expired' ? 'Renew' : 'Resend'}
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteInvitationMutation.mutate(entry.id)}
+                                disabled={deleteInvitationMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
