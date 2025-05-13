@@ -99,35 +99,86 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000
     });
     
-    // Add some sample users
-    this.createUser({
-      email: "admin@example.com",
-      password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
-      name: "Admin User",
-      role: "admin"
-    });
-    
-    this.createUser({
-      email: "ae@example.com",
-      password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
-      name: "Sarah Johnson",
-      role: "ae"
-    });
-    
-    // Add user-specific accounts 
-    this.createUser({
+    // Add sample users directly to the maps to avoid async issues
+    const adminUser: User = {
+      id: 1,
       email: "charlieifrah+admin@gmail.com",
       password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
       name: "Admin User",
-      role: "admin"
-    });
+      role: "admin",
+      status: "active",
+      createdAt: new Date(),
+      createdBy: null,
+      updatedAt: null,
+      updatedBy: null
+    };
+    this.users.set(adminUser.id, adminUser);
+    this.userId = 2; // Set to next available ID
     
-    this.createUser({
+    const aeUser: User = {
+      id: 2,
       email: "charlieifrah@gmail.com",
       password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
       name: "Charlie Ifrah",
-      role: "ae"
-    });
+      role: "ae",
+      status: "active",
+      createdAt: new Date(),
+      createdBy: null,
+      updatedAt: null,
+      updatedBy: null
+    };
+    this.users.set(aeUser.id, aeUser);
+    
+    // Add sample contract directly 
+    const contract: Contract = {
+      id: 1,
+      clientName: "Acme Corp",
+      aeId: 2, // Charlie's user ID
+      contractValue: "256000",
+      acv: "64000",
+      contractType: "new",
+      contractLength: 4,
+      paymentTerms: "monthly",
+      isPilot: false,
+      notes: "Sample contract added to show dashboard functionality",
+      createdBy: 1, // Admin's user ID
+      createdAt: new Date()
+    };
+    this.contracts.set(contract.id, contract);
+    this.contractId = 2; // Set to next available ID
+    
+    // Add sample invoice directly
+    const invoice: Invoice = {
+      id: 1,
+      contractId: contract.id,
+      amount: "64000",
+      invoiceDate: new Date().toISOString().split('T')[0],
+      revenueType: "recurring",
+      notes: "First quarterly payment",
+      createdBy: 1,
+      createdAt: new Date()
+    };
+    this.invoices.set(invoice.id, invoice);
+    this.invoiceId = 2; // Set to next available ID
+    
+    // Add sample commission directly
+    const commission: Commission = {
+      id: 1,
+      aeId: 2,
+      invoiceId: invoice.id,
+      baseCommission: "6400",
+      pilotBonus: "0",
+      multiYearBonus: "1600",
+      upfrontBonus: "0",
+      totalCommission: "8000",
+      status: "pending",
+      approvedAt: null,
+      approvedBy: null,
+      rejectionReason: null,
+      createdAt: new Date()
+    };
+    this.commissions.set(commission.id, commission);
+    this.commissionId = 2; // Set to next available ID
   }
 
   // User operations
