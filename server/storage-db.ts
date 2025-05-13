@@ -2,7 +2,7 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { LoginUser, InsertUser, User, InsertContract, Contract, Invoice, InsertInvoice, Commission, InsertCommission, ContractWithAE, InvoiceWithDetails, CommissionWithDetails } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sql, or } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, SQL, or } from "drizzle-orm";
 import { users, contracts, invoices, commissions } from "@shared/schema";
 import { pool } from "./db";
 
