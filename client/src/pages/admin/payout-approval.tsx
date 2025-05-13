@@ -60,7 +60,7 @@ type Commission = {
 
 export default function PayoutApproval() {
   const { toast } = useToast();
-  const [selectedAE, setSelectedAE] = useState<string | null>(null);
+  const [selectedAE, setSelectedAE] = useState<string>('all');
   const [viewDetails, setViewDetails] = useState<Commission | null>(null);
   const [rejectDialog, setRejectDialog] = useState<{open: boolean, commission: Commission | null}>({
     open: false,
@@ -69,13 +69,13 @@ export default function PayoutApproval() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   // Load AEs for filter dropdown
-  const { data: aes } = useQuery({
+  const { data: aes = [] } = useQuery<any[]>({
     queryKey: ["/api/aes"],
   });
 
   // Load pending approvals
-  const { data: pendingApprovals, isLoading } = useQuery({
-    queryKey: ["/api/admin/approvals", selectedAE ? { aeId: selectedAE } : {}],
+  const { data: pendingApprovals = [], isLoading } = useQuery<Commission[]>({
+    queryKey: ["/api/admin/approvals", selectedAE && selectedAE !== 'all' ? { aeId: selectedAE } : {}],
   });
 
   // Approve commission mutation
@@ -168,12 +168,12 @@ export default function PayoutApproval() {
             <CardDescription>Review and approve commission payouts</CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            <Select value={selectedAE || ''} onValueChange={setSelectedAE}>
+            <Select value={selectedAE} onValueChange={setSelectedAE}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All AEs" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All AEs</SelectItem>
+                <SelectItem value="all">All AEs</SelectItem>
                 {aes?.map((ae: any) => (
                   <SelectItem key={ae.id} value={ae.id.toString()}>
                     {ae.name}
