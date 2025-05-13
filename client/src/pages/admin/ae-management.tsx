@@ -51,7 +51,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { formatDate } from '@/lib/utils';
-import { Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus } from 'lucide-react';
+import { AlertTriangle, Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -370,8 +370,8 @@ export default function AEManagementPage() {
             <div className="my-4 p-4 bg-gray-100 rounded-md font-mono text-center">
               {tempPassword}
             </div>
-            <Alert variant="warning">
-              <AlertTriangle className="h-4 w-4" />
+            <Alert className="bg-yellow-50 border-yellow-200">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
               <AlertTitle>Security Notice</AlertTitle>
               <AlertDescription>
                 This password should be changed immediately after the first login.
