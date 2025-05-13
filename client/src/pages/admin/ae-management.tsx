@@ -64,16 +64,26 @@ const updateAEFormSchema = z.object({
   id: z.number(),
   name: z.string().min(1, { message: 'Name is required' }).optional(),
   email: z.string().email({ message: 'Please enter a valid email address' }).optional(),
-  status: z.enum(['active', 'suspended', 'pending']).optional(),
+  status: z.enum(['active', 'suspended', 'pending', 'expired']).optional(),
 });
 
 // Types for the page
-type AccountExecutive = {
+type BaseEntry = {
   id: number;
   name: string;
   email: string;
-  status: 'active' | 'suspended' | 'pending';
+  status: 'active' | 'suspended' | 'pending' | 'expired';
   createdAt: string;
+  type: 'user' | 'invitation';
+};
+
+type AccountExecutive = BaseEntry & {
+  type: 'user';
+};
+
+type InvitationEntry = BaseEntry & {
+  type: 'invitation';
+  expires?: string;
 };
 
 export default function AEManagementPage() {
@@ -193,6 +203,63 @@ export default function AEManagementPage() {
     onError: (error: Error) => {
       toast({
         title: 'Failed to delete account executive',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Mutation for resending an invitation
+  const [resendInviteLink, setResendInviteLink] = useState<string | null>(null);
+  const resendInvitationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('POST', `/api/admin/resend-invitation/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to resend invitation');
+      }
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Invitation resent',
+        description: 'The invitation has been successfully resent.',
+      });
+      // Store invitation link for display
+      setResendInviteLink(data.inviteLink);
+      // Force refetch of the AEs list
+      refetchAEs();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to resend invitation',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Mutation for deleting an invitation
+  const deleteInvitationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('DELETE', `/api/admin/invitations/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to delete invitation');
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Invitation deleted',
+        description: 'The invitation has been successfully deleted.',
+      });
+      // Force refetch of the AEs list
+      refetchAEs();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to delete invitation',
         description: error.message,
         variant: 'destructive',
       });
@@ -552,6 +619,7 @@ export default function AEManagementPage() {
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="suspended">Suspended</SelectItem>
                           <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
