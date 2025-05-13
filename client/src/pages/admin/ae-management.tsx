@@ -456,6 +456,60 @@ export default function AEManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        
+        {/* Resent Invitation Dialog */}
+        <Dialog 
+          open={resendInviteLink !== null} 
+          onOpenChange={(open) => !open && setResendInviteLink(null)}
+        >
+          <DialogContent className="max-w-md w-full sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Invitation Resent</DialogTitle>
+              <DialogDescription>
+                The invitation has been resent. Share this secure link with the Account Executive.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="mt-2">
+              <div className="relative">
+                <div className="p-3 bg-gray-50 rounded-md border font-mono text-xs break-all overflow-hidden">
+                  {resendInviteLink}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-2 top-2 bg-white"
+                  onClick={() => {
+                    if (resendInviteLink) {
+                      navigator.clipboard.writeText(resendInviteLink);
+                      toast({
+                        title: 'Copied to clipboard',
+                        description: 'Invitation link has been copied to your clipboard',
+                      });
+                    }
+                  }}
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <Alert className="bg-blue-50 border-blue-200 w-full max-w-full mt-4">
+              <Info className="h-4 w-4 text-blue-500 shrink-0" />
+              <div className="w-full">
+                <AlertTitle className="text-sm font-medium">What happens next</AlertTitle>
+                <AlertDescription className="text-xs mt-1">
+                  The Account Executive will use this link to set up their account and password.
+                  The link will expire in 72 hours.
+                </AlertDescription>
+              </div>
+            </Alert>
+            
+            <DialogFooter className="mt-4">
+              <Button onClick={() => setResendInviteLink(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Invite AE Dialog */}
         <Dialog open={showInviteDialog} onOpenChange={(open) => {
@@ -690,7 +744,7 @@ export default function AEManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {accountExecutives.map((entry) => (
+                  {accountExecutives.map((entry: BaseEntry) => (
                     <TableRow key={`${entry.type}-${entry.id}`}>
                       <TableCell className="font-medium">
                         {entry.name}
