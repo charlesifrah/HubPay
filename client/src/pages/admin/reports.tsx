@@ -71,25 +71,27 @@ export default function Reports() {
   const [appliedFilters, setAppliedFilters] = useState<FilterOptions>({});
 
   // Load AEs for filter dropdown
-  const { data: aes } = useQuery({
+  const { data: aes = [] } = useQuery<any[]>({
     queryKey: ["/api/aes"],
   });
 
+  // Define report data type
+  type ReportData = {
+    summary: ReportSummary;
+    byAE: AEReportData[];
+  };
+
   // Load report data with applied filters
-  const { data: reportData, isLoading } = useQuery({
+  const { data: reportData = { summary: { totalCommission: '0', totalDeals: 0, avgCommission: '0' }, byAE: [] }, isLoading } = useQuery<ReportData>({
     queryKey: ["/api/admin/reports", appliedFilters],
     enabled: Object.keys(appliedFilters).length > 0,
   });
 
-  // Format summary data
-  const summary: ReportSummary = reportData?.summary || {
-    totalCommission: "0",
-    totalDeals: 0,
-    avgCommission: "0",
-  };
+  // Use summary data
+  const summary = reportData.summary;
 
-  // Format AE data
-  const aeData: AEReportData[] = reportData?.byAE || [];
+  // Use AE data
+  const aeData = reportData.byAE;
 
   // Handle date range selection
   const handleDateRangeSelect = (range: DateRange) => {
@@ -178,8 +180,8 @@ export default function Reports() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="range"
-                      selected={dateRange}
-                      onSelect={handleDateRangeSelect}
+                      selected={dateRange as any}
+                      onSelect={(range: any) => handleDateRangeSelect(range as DateRange)}
                       initialFocus
                     />
                   </PopoverContent>
@@ -211,7 +213,7 @@ export default function Reports() {
               <div className="space-y-2">
                 <Label>Deal Type</Label>
                 <Select 
-                  value={filters.contractType || ""} 
+                  value={filters.contractType || "all"} 
                   onValueChange={(value) => handleFilterChange('contractType', value)}
                 >
                   <SelectTrigger>
