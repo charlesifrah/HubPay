@@ -4,6 +4,7 @@ import { z } from "zod";
 
 // Enum definitions
 export const userRoleEnum = pgEnum('user_role', ['admin', 'ae']);
+export const userStatusEnum = pgEnum('user_status', ['pending', 'active', 'suspended']);
 export const contractTypeEnum = pgEnum('contract_type', ['new', 'renewal', 'upsell']);
 export const paymentTermsEnum = pgEnum('payment_terms', ['annual', 'quarterly', 'monthly', 'upfront', 'full-upfront']);
 export const revenueTypeEnum = pgEnum('revenue_type', ['recurring', 'non-recurring', 'service']);
@@ -16,7 +17,22 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   role: userRoleEnum("role").notNull().default('ae'),
+  status: userStatusEnum("status").notNull().default('active'),
   createdAt: timestamp("created_at").defaultNow(),
+  createdBy: integer("created_by").references(() => users.id),
+  updatedAt: timestamp("updated_at"),
+  updatedBy: integer("updated_by").references(() => users.id),
+});
+
+// Invitations table
+export const invitations = pgTable("invitations", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  token: text("token").notNull().unique(),
+  expires: timestamp("expires").notNull(),
+  used: boolean("used").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
 });
 
 // Contracts table
@@ -66,8 +82,22 @@ export const commissions = pgTable("commissions", {
 });
 
 // Zod schemas for inserts
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  updatedBy: true
+});
 export const loginUserSchema = insertUserSchema.pick({ email: true, password: true });
+export const createAESchema = insertUserSchema.omit({ password: true });
+
+export const insertInvitationSchema = createInsertSchema(invitations).omit({ 
+  id: true, 
+  createdAt: true, 
+  token: true,
+  expires: true,
+  used: true
+});
 
 export const insertContractSchema = createInsertSchema(contracts).omit({ id: true, createdAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
@@ -76,12 +106,15 @@ export const insertCommissionSchema = createInsertSchema(commissions).omit({ id:
 // Types for inserts
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginUser = z.infer<typeof loginUserSchema>;
+export type CreateAE = z.infer<typeof createAESchema>;
+export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
 export type InsertContract = z.infer<typeof insertContractSchema>;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type InsertCommission = z.infer<typeof insertCommissionSchema>;
 
 // Types for selects
 export type User = typeof users.$inferSelect;
+export type Invitation = typeof invitations.$inferSelect;
 export type Contract = typeof contracts.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type Commission = typeof commissions.$inferSelect;
