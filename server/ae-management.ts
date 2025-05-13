@@ -8,6 +8,10 @@ import { storage } from "./storage";
 import { hashPassword } from "./auth";
 import { fromZodError } from "zod-validation-error";
 
+// Type aliases to avoid any type errors
+type User = typeof users.$inferSelect;
+type Invitation = typeof invitations.$inferSelect;
+
 // Function to generate a random token
 function generateToken(length: number = 64): string {
   return randomBytes(length / 2).toString('hex');
