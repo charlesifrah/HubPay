@@ -405,8 +405,7 @@ export function setupAEManagementRoutes(app: Express) {
       // Mark invitation as used
       await db.update(invitations)
         .set({
-          used: true,
-          usedAt: new Date()
+          used: true
         })
         .where(eq(invitations.id, invitation.id));
       

@@ -54,6 +54,10 @@ export default function UploadContract() {
   // Get list of AEs for the dropdown
   const { data: aes, isLoading: isLoadingAEs } = useQuery({
     queryKey: ["/api/aes"],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/aes');
+      return await res.json();
+    }
   });
 
   // Form setup
@@ -75,10 +79,22 @@ export default function UploadContract() {
   const mutation = useMutation({
     mutationFn: async (data: ContractFormValues) => {
       setIsSubmitting(true);
+      console.log("Submitting contract data:", {
+        ...data,
+        createdBy: user?.id,
+      });
+      
       const response = await apiRequest("POST", "/api/admin/contracts", {
         ...data,
         createdBy: user?.id,
       });
+      
+      // If the response is not ok, throw an error with the response details
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create contract");
+      }
+      
       return await response.json();
     },
     onSuccess: (data) => {
@@ -100,10 +116,12 @@ export default function UploadContract() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
       setIsSubmitting(false);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error("Contract creation error:", error);
+      
       toast({
-        title: "Error",
-        description: "There was an error creating the contract. Please try again.",
+        title: "Error creating contract",
+        description: error.message || "There was an error creating the contract. Please try again.",
         variant: "destructive",
       });
       setIsSubmitting(false);
