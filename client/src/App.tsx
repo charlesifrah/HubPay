@@ -29,6 +29,7 @@ function Router() {
       {/* Admin Routes */}
       <ProtectedRoute path="/" component={AdminDashboard} adminOnly={true} />
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
+      <ProtectedRoute path="/admin/ae-management" component={AEManagement} adminOnly={true} />
       <ProtectedRoute path="/admin/upload-contract" component={UploadContract} adminOnly={true} />
       <ProtectedRoute path="/admin/upload-invoice" component={UploadInvoice} adminOnly={true} />
       <ProtectedRoute path="/admin/payout-approval" component={PayoutApproval} adminOnly={true} />

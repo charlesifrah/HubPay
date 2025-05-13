@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import Layout from '@/components/layout/layout';
+import { Layout } from '@/components/layout/layout';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -254,7 +254,7 @@ export default function AEManagementPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="AE Management">
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Account Executive Management</h1>

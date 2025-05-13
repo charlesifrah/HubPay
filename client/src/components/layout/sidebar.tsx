@@ -13,6 +13,7 @@ import {
   PieChart,
   User,
   Menu,
+  Users,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -35,6 +36,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Dashboard",
       href: "/admin/dashboard",
       icon: <PieChart className="mr-3 h-5 w-5" />,
+    },
+    {
+      title: "AE Management",
+      href: "/admin/ae-management",
+      icon: <Users className="mr-3 h-5 w-5" />,
     },
     {
       title: "Upload Contract",
