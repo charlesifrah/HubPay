@@ -99,7 +99,14 @@ export const insertInvitationSchema = createInsertSchema(invitations).omit({
   used: true
 });
 
-export const insertContractSchema = createInsertSchema(contracts).omit({ id: true, createdAt: true });
+// Custom contract schema to handle numeric conversions
+export const insertContractSchema = createInsertSchema(contracts)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    // Convert numeric values to strings for Postgres numeric type compatibility
+    contractValue: z.coerce.string(),
+    acv: z.coerce.string()
+  });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
 export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, approvedAt: true });
 
