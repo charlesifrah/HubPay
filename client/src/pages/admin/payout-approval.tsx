@@ -301,7 +301,7 @@ export default function PayoutApproval() {
             <div className="space-y-4 py-2">
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Client:</span>
-                <span className="text-sm">{viewDetails.clientName}</span>
+                <span className="text-sm">{viewDetails.contractClientName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Account Executive:</span>
