@@ -137,7 +137,22 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 space-y-2">
+        <Link href="/profile">
+          <a className={cn(
+            "flex items-center px-4 py-2 text-sm font-medium rounded-md group",
+            isActive("/profile")
+              ? "text-primary-700 bg-primary-50"
+              : "text-gray-700 hover:bg-gray-50 border border-gray-200"
+          )}>
+            <User className={cn(
+              "mr-2 h-4 w-4",
+              isActive("/profile") ? "text-primary-500" : "text-gray-500"
+            )} />
+            My Profile
+          </a>
+        </Link>
+        
         <Button
           variant="outline"
           onClick={handleLogout}

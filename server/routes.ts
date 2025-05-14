@@ -296,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Profile update endpoint
-  app.patch("/api/user/profile", async (req, res) => {
+  app.patch("/api/user/profile", async (req: any, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }

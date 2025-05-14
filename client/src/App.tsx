@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import RegisterWithInvitation from "@/pages/register-with-invitation";
+import ProfilePage from "@/pages/profile-page";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -40,6 +41,9 @@ function Router() {
       {/* AE Routes */}
       <ProtectedRoute path="/ae/dashboard" component={AEDashboard} />
       <ProtectedRoute path="/ae/commission-statement" component={CommissionStatement} />
+      
+      {/* Common Protected Routes */}
+      <ProtectedRoute path="/profile" component={ProfilePage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
