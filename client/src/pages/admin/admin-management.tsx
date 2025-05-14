@@ -118,7 +118,7 @@ export default function AdminManagementPage() {
   // Mutation for inviting an Admin
   const inviteMutation = useMutation({
     mutationFn: async (data: z.infer<typeof inviteFormSchema>) => {
-      const res = await apiRequest('POST', '/api/admin/invite-admin', data);
+      const res = await apiRequest('POST', '/api/admin/invite', data);
       return await res.json();
     },
     onSuccess: (data) => {
@@ -214,7 +214,18 @@ export default function AdminManagementPage() {
   const [resendInviteLink, setResendInviteLink] = useState<string | null>(null);
   const resendInvitationMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest('POST', `/api/admin/resend-admin-invitation/${id}`);
+      // Resending an invitation would be creating a new one with the same email
+      // First we need to get the invitation details to retrieve the email
+      const inviteRes = await apiRequest('GET', `/api/admin/administrators`);
+      const invites = await inviteRes.json();
+      const invitation = invites.find((invite: any) => invite.id === id && invite.type === 'invitation');
+      
+      if (!invitation) {
+        throw new Error('Invitation not found');
+      }
+      
+      // Now we can create a new invitation with the same email
+      const res = await apiRequest('POST', `/api/admin/invite`, { email: invitation.email });
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to resend invitation');
@@ -243,7 +254,7 @@ export default function AdminManagementPage() {
   // Mutation for deleting an invitation
   const deleteInvitationMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest('DELETE', `/api/admin/admin-invitations/${id}`);
+      const res = await apiRequest('DELETE', `/api/admin/invitations/${id}`);
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to delete invitation');
@@ -272,7 +283,7 @@ export default function AdminManagementPage() {
   // Mutation for resetting an Admin's password
   const resetPasswordMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest('POST', `/api/admin/reset-admin-password/${id}`);
+      const res = await apiRequest('POST', `/api/admin/reset-password/${id}`);
       return await res.json();
     },
     onSuccess: (data) => {
