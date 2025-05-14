@@ -14,11 +14,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronLeft,
   FileSpreadsheet, 
-  Tag
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { Layout } from "@/components/layout/layout";
 
 export default function ContractsPage() {
   const { user } = useAuth();
@@ -42,31 +41,15 @@ export default function ContractsPage() {
     }
   };
 
-  const goBack = () => {
-    if (user?.role === "admin") {
-      setLocation("/admin/dashboard");
-    } else {
-      setLocation("/ae/dashboard");
-    }
-  };
-
   const isAdmin = user?.role === "admin";
   const uploadRoute = isAdmin ? "/admin/upload-contract" : null;
 
   return (
-    <div className="container py-10">
-      <div className="flex items-center justify-between mb-6">
+    <Layout title="Contracts">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="mr-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
           <FileSpreadsheet className="h-6 w-6 text-primary-500 mr-2" />
-          <h1 className="text-2xl font-bold">Contracts</h1>
+          <h2 className="text-2xl font-bold">Contracts</h2>
         </div>
         
         {isAdmin && uploadRoute && (
@@ -87,7 +70,7 @@ export default function ContractsPage() {
           Error loading contracts
         </div>
       ) : !contracts || contracts.length === 0 ? (
-        <div className="text-center py-10 bg-gray-50 rounded-md">
+        <div className="text-center py-10 bg-white shadow rounded-lg">
           <FileSpreadsheet className="h-10 w-10 text-gray-400 mx-auto mb-3" />
           <h3 className="text-lg font-medium text-gray-600">No Contracts Found</h3>
           <p className="text-gray-500 mb-4">There are no contracts in the system yet.</p>
@@ -98,43 +81,45 @@ export default function ContractsPage() {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>AE Name</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>ACV</TableHead>
-                <TableHead>Length</TableHead>
-                <TableHead>Terms</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contracts.map((contract) => (
-                <TableRow key={contract.id}>
-                  <TableCell className="font-medium">
-                    {contract.clientName}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
-                      {contract.contractType.charAt(0).toUpperCase() + contract.contractType.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{contract.aeName}</TableCell>
-                  <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
-                  <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
-                  <TableCell>{contract.contractLength} months</TableCell>
-                  <TableCell>{contract.paymentTerms}</TableCell>
-                  <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
+        <div className="bg-white shadow rounded-lg">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>AE Name</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>ACV</TableHead>
+                  <TableHead>Length</TableHead>
+                  <TableHead>Terms</TableHead>
+                  <TableHead>Created</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {contracts.map((contract) => (
+                  <TableRow key={contract.id}>
+                    <TableCell className="font-medium">
+                      {contract.clientName}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
+                        {contract.contractType.charAt(0).toUpperCase() + contract.contractType.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{contract.aeName}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
+                    <TableCell>{contract.contractLength} months</TableCell>
+                    <TableCell>{contract.paymentTerms}</TableCell>
+                    <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
