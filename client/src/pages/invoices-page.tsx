@@ -14,11 +14,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronLeft,
   FileBox,
-  Tag
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { Layout } from "@/components/layout/layout";
 
 export default function InvoicesPage() {
   const { user } = useAuth();
@@ -42,31 +41,15 @@ export default function InvoicesPage() {
     }
   };
 
-  const goBack = () => {
-    if (user?.role === "admin") {
-      setLocation("/admin/dashboard");
-    } else {
-      setLocation("/ae/dashboard");
-    }
-  };
-
   const isAdmin = user?.role === "admin";
   const uploadRoute = isAdmin ? "/admin/upload-invoice" : null;
 
   return (
-    <div className="container py-10">
-      <div className="flex items-center justify-between mb-6">
+    <Layout title="Invoices">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goBack}
-            className="mr-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
           <FileBox className="h-6 w-6 text-primary-500 mr-2" />
-          <h1 className="text-2xl font-bold">Invoices</h1>
+          <h2 className="text-2xl font-bold">Invoices</h2>
         </div>
         
         {isAdmin && uploadRoute && (
@@ -87,7 +70,7 @@ export default function InvoicesPage() {
           Error loading invoices
         </div>
       ) : !invoices || invoices.length === 0 ? (
-        <div className="text-center py-10 bg-gray-50 rounded-md">
+        <div className="text-center py-10 bg-white shadow rounded-lg">
           <FileBox className="h-10 w-10 text-gray-400 mx-auto mb-3" />
           <h3 className="text-lg font-medium text-gray-600">No Invoices Found</h3>
           <p className="text-gray-500 mb-4">There are no invoices in the system yet.</p>
@@ -98,49 +81,51 @@ export default function InvoicesPage() {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Revenue Type</TableHead>
-                <TableHead>Account Executive</TableHead>
-                <TableHead>Invoice Date</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">
-                    {invoice.contractClientName}
-                  </TableCell>
-                  <TableCell>{formatCurrency(parseFloat(invoice.amount))}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={getRevenueTypeColor(invoice.revenueType)}>
-                      {invoice.revenueType.split('-').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{invoice.contractAEName}</TableCell>
-                  <TableCell>{invoice.invoiceDate}</TableCell>
-                  <TableCell>{invoice.createdAt ? formatDate(new Date(invoice.createdAt)) : 'N/A'}</TableCell>
-                  <TableCell>
-                    {invoice.notes ? (
-                      <span className="text-sm text-gray-600">{invoice.notes}</span>
-                    ) : (
-                      <span className="text-xs text-gray-400">No notes</span>
-                    )}
-                  </TableCell>
+        <div className="bg-white shadow rounded-lg">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Revenue Type</TableHead>
+                  <TableHead>Account Executive</TableHead>
+                  <TableHead>Invoice Date</TableHead>
+                  <TableHead>Uploaded</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">
+                      {invoice.contractClientName}
+                    </TableCell>
+                    <TableCell>{formatCurrency(parseFloat(invoice.amount))}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getRevenueTypeColor(invoice.revenueType)}>
+                        {invoice.revenueType.split('-').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{invoice.contractAEName}</TableCell>
+                    <TableCell>{invoice.invoiceDate}</TableCell>
+                    <TableCell>{invoice.createdAt ? formatDate(new Date(invoice.createdAt)) : 'N/A'}</TableCell>
+                    <TableCell>
+                      {invoice.notes ? (
+                        <span className="text-sm text-gray-600">{invoice.notes}</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No notes</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
