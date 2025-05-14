@@ -141,7 +141,10 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
       <div className="p-4 border-t border-gray-200 space-y-2">
         <button 
-          onClick={() => window.location.href = "/profile"}
+          onClick={() => {
+            if (mobile && onClose) onClose();
+            window.location.href = "/profile";
+          }}
           className={cn(
             "flex items-center px-4 py-2 text-sm font-medium rounded-md group w-full",
             isActive("/profile")
