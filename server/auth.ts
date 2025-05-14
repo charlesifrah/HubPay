@@ -158,6 +158,16 @@ export function setupAuth(app: Express) {
       return res.status(403).json({ message: "Forbidden, admin role required" });
     }
 
+    // Get user from database and attach to request
+    const user = await storage.getUser(payload.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Set user and authentication properties that would normally be set by passport
+    (req as any).user = user;
+    (req as any).isAuthenticated = () => true;
+
     next();
   });
 
@@ -174,6 +184,16 @@ export function setupAuth(app: Express) {
     if (!payload) {
       return res.status(401).json({ message: "Unauthorized, invalid token" });
     }
+
+    // Get user from database and attach to request
+    const user = await storage.getUser(payload.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Set user and authentication properties that would normally be set by passport
+    (req as any).user = user;
+    (req as any).isAuthenticated = () => true;
 
     // For AE routes, both admin and AE roles are allowed
     // but we're checking the user exists and storing their ID for later use
