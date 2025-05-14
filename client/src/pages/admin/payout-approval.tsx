@@ -85,6 +85,28 @@ export default function PayoutApproval() {
     queryKey: ["/api/user"],
   });
 
+  // Function to save approved commissions to localStorage
+  const saveApprovedCommission = (commissionId: number) => {
+    const approvedCommissions = JSON.parse(localStorage.getItem('approvedCommissions') || '[]');
+    if (!approvedCommissions.includes(commissionId)) {
+      approvedCommissions.push(commissionId);
+      localStorage.setItem('approvedCommissions', JSON.stringify(approvedCommissions));
+    }
+  };
+  
+  // Function to load approved commissions from localStorage
+  const loadApprovedCommissions = (): number[] => {
+    return JSON.parse(localStorage.getItem('approvedCommissions') || '[]');
+  };
+  
+  // State to track locally approved commissions
+  const [locallyApproved, setLocallyApproved] = useState<number[]>(loadApprovedCommissions());
+  
+  // Filter out locally approved commissions from display
+  const filteredPendingApprovals = pendingApprovals.filter(
+    commission => !locallyApproved.includes(commission.id)
+  );
+  
   // Approve commission mutation
   const approveMutation = useMutation({
     mutationFn: async (commissionId: number) => {
@@ -93,14 +115,20 @@ export default function PayoutApproval() {
       });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, commissionId) => {
       toast({
         title: "Commission approved",
         description: "The commission has been successfully approved.",
       });
+      
+      // Save to localStorage for persistence across server restarts
+      saveApprovedCommission(commissionId);
+      setLocallyApproved(prev => [...prev, commissionId]);
+      
       // Refresh approvals list and dashboard data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/approvals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/payouts"] });
     },
     onError: (error) => {
       toast({
@@ -111,6 +139,23 @@ export default function PayoutApproval() {
     },
   });
 
+  // Function to save rejected commissions to localStorage
+  const saveRejectedCommission = (commissionId: number) => {
+    const rejectedCommissions = JSON.parse(localStorage.getItem('rejectedCommissions') || '[]');
+    if (!rejectedCommissions.includes(commissionId)) {
+      rejectedCommissions.push(commissionId);
+      localStorage.setItem('rejectedCommissions', JSON.stringify(rejectedCommissions));
+    }
+  };
+  
+  // Function to load rejected commissions from localStorage
+  const loadRejectedCommissions = (): number[] => {
+    return JSON.parse(localStorage.getItem('rejectedCommissions') || '[]');
+  };
+  
+  // State to track locally rejected commissions
+  const [locallyRejected, setLocallyRejected] = useState<number[]>(loadRejectedCommissions());
+  
   // Reject commission mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ commissionId, reason }: { commissionId: number, reason: string }) => {
@@ -120,14 +165,20 @@ export default function PayoutApproval() {
       });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, { commissionId }) => {
       toast({
         title: "Commission rejected",
         description: "The commission has been rejected with the provided reason.",
       });
+      
+      // Save to localStorage for persistence across server restarts
+      saveRejectedCommission(commissionId);
+      setLocallyRejected(prev => [...prev, commissionId]);
+      
       // Close dialog and clear reason
       setRejectDialog({ open: false, commission: null });
       setRejectionReason("");
+      
       // Refresh approvals list and dashboard data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/approvals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/dashboard"] });
@@ -221,14 +272,23 @@ export default function PayoutApproval() {
                       Loading pending approvals...
                     </TableCell>
                   </TableRow>
-                ) : pendingApprovals?.length === 0 ? (
+                ) : pendingApprovals?.length === 0 || 
+                    pendingApprovals.filter(c => 
+                      !locallyApproved.includes(c.id) && 
+                      !locallyRejected.includes(c.id)
+                    ).length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
                       No pending approvals found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  pendingApprovals?.map((commission: Commission) => (
+                  pendingApprovals
+                    .filter((commission: Commission) => 
+                      !locallyApproved.includes(commission.id) && 
+                      !locallyRejected.includes(commission.id)
+                    )
+                    .map((commission: Commission) => (
                     <TableRow key={commission.id}>
                       <TableCell>
                         <div className="text-sm font-medium text-gray-900">{commission.aeName}</div>
