@@ -133,7 +133,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload Invoice (Admin)
   app.post("/api/admin/invoices", async (req, res) => {
     try {
+      console.log("Invoice upload request body:", req.body);
+      
+      // Fix amount to ensure it's a string (similar to how we handled contractValue)
+      if (typeof req.body.amount === 'number') {
+        req.body.amount = req.body.amount.toString();
+      }
+      
       const invoiceData = insertInvoiceSchema.parse(req.body);
+      console.log("Parsed invoice data:", invoiceData);
       
       // Verify contract exists
       const contract = await storage.getContract(invoiceData.contractId);
@@ -157,6 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         commission
       });
     } catch (error) {
+      console.error("Invoice creation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid invoice data", errors: error.errors });
       }

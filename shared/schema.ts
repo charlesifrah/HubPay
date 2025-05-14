@@ -107,7 +107,12 @@ export const insertContractSchema = createInsertSchema(contracts)
     contractValue: z.coerce.string(),
     acv: z.coerce.string()
   });
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
+export const insertInvoiceSchema = createInsertSchema(invoices)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    // Convert numeric values to strings for Postgres numeric type compatibility
+    amount: z.coerce.string()
+  });
 export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, approvedAt: true });
 
 // Types for inserts
