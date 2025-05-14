@@ -80,10 +80,17 @@ export default function PayoutApproval() {
     queryKey: ["/api/admin/approvals", selectedAE && selectedAE !== 'all' ? { aeId: selectedAE } : {}],
   });
 
+  // Get current user data
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
   // Approve commission mutation
   const approveMutation = useMutation({
     mutationFn: async (commissionId: number) => {
-      const response = await apiRequest("PATCH", `/api/admin/commissions/${commissionId}/approve`, {});
+      const response = await apiRequest("PATCH", `/api/admin/commissions/${commissionId}/approve`, {
+        currentUserId: currentUser?.id
+      });
       return await response.json();
     },
     onSuccess: () => {
@@ -107,7 +114,10 @@ export default function PayoutApproval() {
   // Reject commission mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ commissionId, reason }: { commissionId: number, reason: string }) => {
-      const response = await apiRequest("PATCH", `/api/admin/commissions/${commissionId}/reject`, { reason });
+      const response = await apiRequest("PATCH", `/api/admin/commissions/${commissionId}/reject`, { 
+        reason,
+        currentUserId: currentUser?.id
+      });
       return await response.json();
     },
     onSuccess: () => {
