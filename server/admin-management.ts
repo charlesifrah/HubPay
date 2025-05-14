@@ -121,14 +121,14 @@ export function setupAdminManagementRoutes(app: Express) {
       
       const updateData = validationResult.data;
       
-      // Check if admin exists
-      const existingAdmin = await db.select().from(users).where(eq(users.id, userId));
+      // Check if admin exists using storage interface
+      const existingAdmin = await storage.getUser(userId);
       
-      if (existingAdmin.length === 0) {
+      if (!existingAdmin) {
         return res.status(404).json({ message: "Administrator not found" });
       }
       
-      if (existingAdmin[0].role !== 'admin') {
+      if (existingAdmin.role !== 'admin') {
         return res.status(400).json({ message: "User is not an administrator" });
       }
       
@@ -141,32 +141,22 @@ export function setupAdminManagementRoutes(app: Express) {
       
       // Check for email uniqueness if email is being updated
       if (updateData.email !== undefined) {
-        const emailExists = await db.select().from(users)
-          .where(sql`${users.email} = ${updateData.email} AND ${users.id} != ${userId}`);
+        const existingUserWithEmail = await storage.getUserByEmail(updateData.email);
         
-        if (emailExists.length > 0) {
+        if (existingUserWithEmail && existingUserWithEmail.id !== userId) {
           return res.status(400).json({ message: "Email is already in use" });
         }
       }
       
-      // Update the admin
-      await db.update(users)
-        .set({
-          ...updates,
-          updatedAt: new Date(),
-          updatedBy: (req.user as any).id
-        })
-        .where(eq(users.id, userId));
-      
-      // Get updated admin data
-      const [updatedAdmin] = await db.select().from(users).where(eq(users.id, userId));
+      // Update the admin using storage interface
+      const updatedAdmin = await storage.updateUser(userId, updates);
       
       // Return the updated admin (excluding password)
       res.status(200).json({
         id: updatedAdmin.id,
         name: updatedAdmin.name,
         email: updatedAdmin.email,
-        status: updatedAdmin.status,
+        status: updatedAdmin.status || 'active',
         role: updatedAdmin.role
       });
     } catch (error) {
