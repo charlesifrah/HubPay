@@ -46,8 +46,8 @@ type Commission = {
   id: number;
   aeId: number;
   aeName: string;
-  clientName: string;
-  dealType: string;
+  contractClientName: string; // From server API response
+  contractType: string; // From server API response
   invoiceId: number;
   invoiceAmount: string;
   baseCommission: string;
@@ -219,9 +219,9 @@ export default function PayoutApproval() {
                         <div className="text-sm font-medium text-gray-900">{commission.aeName}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-gray-900">{commission.clientName}</div>
+                        <div className="text-sm text-gray-900">{commission.contractClientName}</div>
                         <div className="text-xs text-gray-500">
-                          <StatusBadge status={commission.dealType as any} />
+                          <StatusBadge status={commission.contractType as any} />
                         </div>
                       </TableCell>
                       <TableCell>
