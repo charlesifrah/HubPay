@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
@@ -43,9 +44,10 @@ export function StatCard({
                     "ml-2 flex items-baseline text-sm font-semibold",
                     trend.isPositive ? "text-green-600" : "text-red-600"
                   )}>
-                    <span className="material-icons text-sm">
-                      {trend.isPositive ? "arrow_upward" : "arrow_downward"}
-                    </span>
+                    {trend.isPositive ? 
+                      <ArrowUp className="h-3 w-3 mr-1" /> : 
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                    }
                     <span className="sr-only">{trend.isPositive ? "Increased by" : "Decreased by"}</span>
                     {trend.value}
                   </div>
