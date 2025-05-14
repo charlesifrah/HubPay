@@ -40,7 +40,9 @@ import {
   Eye,
   CheckCircle,
   XCircle,
+  ListChecks,
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 type Commission = {
   id: number;
@@ -161,32 +163,35 @@ export default function PayoutApproval() {
 
   return (
     <Layout title="Payout Approval">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ListChecks className="h-6 w-6 text-primary-500 mr-2" />
+          <h2 className="text-2xl font-bold">Payout Approval</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={selectedAE} onValueChange={setSelectedAE}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All AEs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All AEs</SelectItem>
+              {aes?.map((ae: any) => (
+                <SelectItem key={ae.id} value={ae.id.toString()}>
+                  {ae.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleApproveAll}>
+            Approve All
+          </Button>
+        </div>
+      </div>
+      
+      <Separator className="mb-6" />
+      
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Pending Approvals</CardTitle>
-            <CardDescription>Review and approve commission payouts</CardDescription>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Select value={selectedAE} onValueChange={setSelectedAE}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All AEs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All AEs</SelectItem>
-                {aes?.map((ae: any) => (
-                  <SelectItem key={ae.id} value={ae.id.toString()}>
-                    {ae.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={handleApproveAll}>
-              Approve All
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="rounded-md border">
             <Table>
               <TableHeader>
