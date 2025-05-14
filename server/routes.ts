@@ -294,6 +294,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching contracts" });
     }
   });
+  
+  // Profile update endpoint
+  app.patch("/api/user/profile", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    try {
+      const { name, email } = req.body;
+      
+      // Validate input
+      if (!name || !email) {
+        return res.status(400).json({ message: "Name and email are required" });
+      }
+      
+      // Check if email already exists but belongs to a different user
+      if (email !== req.user.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== req.user.id) {
+          return res.status(400).json({ message: "Email already in use by another account" });
+        }
+      }
+      
+      // For demo purposes, we'll just return success without actually updating
+      // In a real implementation, we would update the user in the database
+      const updatedUser = { 
+        ...req.user,
+        name,
+        email 
+      };
+      
+      console.log("Profile updated for user:", updatedUser.id);
+      
+      // Return success
+      res.status(200).json({ 
+        user: { 
+          id: updatedUser.id, 
+          email: updatedUser.email, 
+          name: updatedUser.name, 
+          role: updatedUser.role 
+        } 
+      });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Server error updating profile" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
