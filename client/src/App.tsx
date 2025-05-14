@@ -46,6 +46,8 @@ function Router() {
       
       {/* Common Protected Routes */}
       <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/contracts" component={ContractsPage} />
+      <ProtectedRoute path="/invoices" component={InvoicesPage} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

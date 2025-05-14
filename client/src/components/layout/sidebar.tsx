@@ -14,6 +14,8 @@ import {
   User,
   Menu,
   Users,
+  FileSpreadsheet,
+  FileBox,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -77,7 +79,20 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
     },
   ];
 
-  const links = isAdmin ? adminLinks : aeLinks;
+  const commonLinks = [
+    {
+      title: "View Contracts",
+      href: "/contracts",
+      icon: <FileSpreadsheet className="mr-3 h-5 w-5" />,
+    },
+    {
+      title: "View Invoices",
+      href: "/invoices",
+      icon: <FileBox className="mr-3 h-5 w-5" />,
+    },
+  ];
+
+  const links = isAdmin ? [...adminLinks, ...commonLinks] : [...aeLinks, ...commonLinks];
 
   const handleLogout = () => {
     logoutMutation.mutate();

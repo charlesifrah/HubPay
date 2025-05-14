@@ -1,95 +1,140 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { ContractWithAE } from "@shared/schema";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Contract } from "@shared/schema";
-import { Loader2 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import {
+  ChevronLeft,
+  FileSpreadsheet, 
+  Tag
+} from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function ContractsPage() {
-  const { data: contracts, isLoading } = useQuery<Contract[]>({
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const { data: contracts, isLoading, error } = useQuery<ContractWithAE[]>({
     queryKey: ["/api/contracts"],
-    queryFn: async () => {
-      const response = await fetch("/api/contracts");
-      if (!response.ok) {
-        throw new Error("Failed to fetch contracts");
-      }
-      return response.json();
-    }
+    enabled: !!user,
   });
 
   const getContractTypeColor = (type: string) => {
     switch (type) {
-      case 'new':
-        return 'bg-green-100 text-green-800';
-      case 'renewal':
-        return 'bg-blue-100 text-blue-800';
-      case 'upsell':
-        return 'bg-purple-100 text-purple-800';
+      case "new":
+        return "bg-emerald-100 text-emerald-800";
+      case "renewal":
+        return "bg-blue-100 text-blue-800";
+      case "upsell":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
+  const goBack = () => {
+    if (user?.role === "admin") {
+      setLocation("/admin/dashboard");
+    } else {
+      setLocation("/ae/dashboard");
+    }
+  };
+
+  const isAdmin = user?.role === "admin";
+  const uploadRoute = isAdmin ? "/admin/upload-contract" : null;
+
   return (
-    <div className="container mx-auto py-8 max-w-6xl">
-      <h1 className="text-2xl font-bold mb-6">Contracts</h1>
+    <div className="container py-10">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goBack}
+            className="mr-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <FileSpreadsheet className="h-6 w-6 text-primary-500 mr-2" />
+          <h1 className="text-2xl font-bold">Contracts</h1>
+        </div>
+        
+        {isAdmin && uploadRoute && (
+          <Button onClick={() => setLocation(uploadRoute)}>
+            Upload New Contract
+          </Button>
+        )}
+      </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>All Contracts</CardTitle>
-          <CardDescription>
-            View all contracts in the system
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : contracts && contracts.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>ACV</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Length</TableHead>
-                  <TableHead>Payment Terms</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contracts.map((contract) => (
-                  <TableRow key={contract.id}>
-                    <TableCell className="font-medium">{contract.clientName}</TableCell>
-                    <TableCell>{formatCurrency(Number(contract.contractValue))}</TableCell>
-                    <TableCell>{formatCurrency(Number(contract.acv))}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
-                        {contract.contractType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{contract.contractLength} months</TableCell>
-                    <TableCell>{contract.paymentTerms}</TableCell>
-                    <TableCell>
-                      {contract.createdAt 
-                        ? format(new Date(contract.createdAt), 'MMM d, yyyy') 
-                        : 'N/A'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center p-6 text-gray-500">
-              No contracts found
-            </div>
+      <Separator className="mb-6" />
+
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <div className="animate-spin h-8 w-8 border-4 border-primary-500 rounded-full border-t-transparent"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4">
+          Error loading contracts
+        </div>
+      ) : !contracts || contracts.length === 0 ? (
+        <div className="text-center py-10 bg-gray-50 rounded-md">
+          <FileSpreadsheet className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-gray-600">No Contracts Found</h3>
+          <p className="text-gray-500 mb-4">There are no contracts in the system yet.</p>
+          {isAdmin && uploadRoute && (
+            <Button onClick={() => setLocation(uploadRoute)} variant="outline">
+              Upload Your First Contract
+            </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>AE Name</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>ACV</TableHead>
+                <TableHead>Length</TableHead>
+                <TableHead>Terms</TableHead>
+                <TableHead>Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contracts.map((contract) => (
+                <TableRow key={contract.id}>
+                  <TableCell className="font-medium">
+                    {contract.clientName}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
+                      {contract.contractType.charAt(0).toUpperCase() + contract.contractType.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{contract.aeName}</TableCell>
+                  <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
+                  <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
+                  <TableCell>{contract.contractLength} months</TableCell>
+                  <TableCell>{contract.paymentTerms}</TableCell>
+                  <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
