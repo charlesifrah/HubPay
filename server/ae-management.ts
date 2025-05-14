@@ -254,6 +254,7 @@ export function setupAEManagementRoutes(app: Express) {
           token: inviteToken,
           expires: expirationDate,
           used: false,
+          role: 'ae', // Set role to AE explicitly
           createdBy: adminId
         })
         .returning();
@@ -391,13 +392,13 @@ export function setupAEManagementRoutes(app: Express) {
       // Hash the password
       const hashedPassword = await hashPassword(password);
       
-      // Create the user
+      // Create the user with the role from the invitation
       const newUser = await db.insert(users)
         .values({
           email,
           name,
           password: hashedPassword,
-          role: 'ae',
+          role: invitation.role || 'ae', // Use the role from the invitation, default to 'ae'
           status: 'active'
         })
         .returning();

@@ -31,6 +31,7 @@ export const invitations = pgTable("invitations", {
   token: text("token").notNull().unique(),
   expires: timestamp("expires").notNull(),
   used: boolean("used").notNull().default(false),
+  role: userRoleEnum("role").notNull().default('ae'),
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").notNull().references(() => users.id),
 });
