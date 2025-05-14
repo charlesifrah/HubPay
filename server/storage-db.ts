@@ -179,6 +179,29 @@ export class DatabaseStorage implements IStorage {
     
     return combined.slice(0, limit);
   }
+  
+  async getInvoicesWithDetails(): Promise<InvoiceWithDetails[]> {
+    // Get all invoices with details
+    const invoicesQuery = await db
+      .select({
+        invoice: invoices,
+        contractClientName: contracts.clientName,
+        contractAEName: users.name,
+        contractAEId: contracts.aeId
+      })
+      .from(invoices)
+      .leftJoin(contracts, eq(invoices.contractId, contracts.id))
+      .leftJoin(users, eq(contracts.aeId, users.id))
+      .orderBy(desc(invoices.createdAt));
+
+    // Convert query result to InvoiceWithDetails[]
+    return invoicesQuery.map(({ invoice, contractClientName, contractAEName, contractAEId }) => ({
+      ...invoice,
+      contractClientName: contractClientName || 'Unknown Client',
+      contractAEName: contractAEName || 'Unknown AE',
+      contractAEId: contractAEId || 0
+    }));
+  }
 
   // Commission operations
   async createCommission(commission: InsertCommission): Promise<Commission> {

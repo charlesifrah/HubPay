@@ -9,6 +9,8 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import RegisterWithInvitation from "@/pages/register-with-invitation";
 import ProfilePage from "@/pages/profile-page";
+import ContractsPage from "@/pages/contracts-page";
+import InvoicesPage from "@/pages/invoices-page";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
