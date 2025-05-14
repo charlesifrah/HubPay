@@ -104,7 +104,7 @@ export class MemStorage implements IStorage {
       id: 1,
       email: "charlieifrah+admin@gmail.com",
       password: "$2b$10$RJgaBF1wPQ/9YQFK3oxXzeGQ76/S1QITIJ9CJ0fpf5YZ.hB.tGFa6", // "password"
-      name: "Admin User",
+      name: "Charlie Ifrah",  // Restored to previous value
       role: "admin",
       status: "active",
       createdAt: new Date(),
@@ -130,7 +130,7 @@ export class MemStorage implements IStorage {
     this.users.set(aeUser.id, aeUser);
     
     // Add sample contract directly 
-    const contract: Contract = {
+    const contract1: Contract = {
       id: 1,
       clientName: "Acme Corp",
       aeId: 2, // Charlie's user ID
@@ -144,13 +144,31 @@ export class MemStorage implements IStorage {
       createdBy: 1, // Admin's user ID
       createdAt: new Date()
     };
-    this.contracts.set(contract.id, contract);
-    this.contractId = 2; // Set to next available ID
+    this.contracts.set(contract1.id, contract1);
+    
+    // Add the Apple contract that was created
+    const contract2: Contract = {
+      id: 2,
+      clientName: "Apple",
+      aeId: 2, // Charlie's user ID
+      contractValue: "4000000",
+      acv: "1000000",
+      contractType: "new", 
+      contractLength: 4,
+      paymentTerms: "annual",
+      isPilot: false,
+      notes: "",
+      createdBy: 1, // Admin's user ID
+      createdAt: new Date()
+    };
+    this.contracts.set(contract2.id, contract2);
+    
+    this.contractId = 3; // Set to next available ID
     
     // Add sample invoice directly
     const invoice: Invoice = {
       id: 1,
-      contractId: contract.id,
+      contractId: contract1.id,
       amount: "64000",
       invoiceDate: new Date().toISOString().split('T')[0],
       revenueType: "recurring",
