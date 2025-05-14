@@ -14,6 +14,17 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllAEs(): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
+
+  // Invitation operations
+  getInvitation(id: number): Promise<any>;
+  getInvitationByEmail(email: string): Promise<any>;
+  createInvitation(invitation: { email: string, token: string, role: string, expiresAt: Date, createdBy: number }): Promise<any>;
+  updateInvitation(id: number, updates: Partial<{ token: string, expiresAt: Date }>): Promise<any>;
+  deleteInvitation(id: number): Promise<void>;
+  getAllInvitations(): Promise<any[]>;
 
   // Contract operations
   getContract(id: number): Promise<Contract | undefined>;

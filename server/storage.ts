@@ -92,10 +92,12 @@ export class MemStorage implements IStorage {
   private contracts: Map<number, Contract>;
   private invoices: Map<number, Invoice>;
   private commissions: Map<number, Commission>;
+  private invitations: Map<number, any>;
   private userId: number;
   private contractId: number;
   private invoiceId: number;
   private commissionId: number;
+  private invitationId: number;
   sessionStore: session.SessionStore;
 
   constructor() {
@@ -103,10 +105,12 @@ export class MemStorage implements IStorage {
     this.contracts = new Map();
     this.invoices = new Map();
     this.commissions = new Map();
+    this.invitations = new Map();
     this.userId = 1;
     this.contractId = 1;
     this.invoiceId = 1;
     this.commissionId = 1;
+    this.invitationId = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000
     });
@@ -721,6 +725,88 @@ export class MemStorage implements IStorage {
     };
     
     return results;
+  }
+  
+  // User admin methods
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+    
+    // Apply updates
+    Object.assign(user, updates);
+    
+    // Update timestamp
+    user.updatedAt = new Date();
+    
+    return user;
+  }
+  
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.getUser(id);
+    if (!user) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+    
+    // Remove the user
+    this.users.delete(id);
+  }
+  
+  // Invitation methods
+  async getInvitation(id: number): Promise<any> {
+    return this.invitations.get(id);
+  }
+  
+  async getInvitationByEmail(email: string): Promise<any> {
+    for (const invitation of this.invitations.values()) {
+      if (invitation.email === email) {
+        return invitation;
+      }
+    }
+    return undefined;
+  }
+  
+  async createInvitation(invitation: { email: string, token: string, role: string, expiresAt: Date, createdBy: number }): Promise<any> {
+    const id = this.invitationId++;
+    const newInvitation = {
+      id,
+      ...invitation,
+      used: false,
+      createdAt: new Date()
+    };
+    this.invitations.set(id, newInvitation);
+    return newInvitation;
+  }
+  
+  async updateInvitation(id: number, updates: Partial<{ token: string, expiresAt: Date }>): Promise<any> {
+    const invitation = await this.getInvitation(id);
+    if (!invitation) {
+      throw new Error(`Invitation with ID ${id} not found`);
+    }
+    
+    // Apply updates
+    Object.assign(invitation, updates);
+    
+    return invitation;
+  }
+  
+  async deleteInvitation(id: number): Promise<void> {
+    const invitation = await this.getInvitation(id);
+    if (!invitation) {
+      throw new Error(`Invitation with ID ${id} not found`);
+    }
+    
+    // Remove the invitation
+    this.invitations.delete(id);
+  }
+  
+  async getAllInvitations(): Promise<any[]> {
+    return Array.from(this.invitations.values());
   }
 }
 
