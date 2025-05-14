@@ -3,7 +3,7 @@ import connectPg from "connect-pg-simple";
 import { LoginUser, InsertUser, User, InsertContract, Contract, Invoice, InsertInvoice, Commission, InsertCommission, ContractWithAE, InvoiceWithDetails, CommissionWithDetails } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, SQL, or } from "drizzle-orm";
-import { users, contracts, invoices, commissions } from "@shared/schema";
+import { users, contracts, invoices, commissions, invitations } from "@shared/schema";
 import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
@@ -116,6 +116,77 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAEs(): Promise<User[]> {
     return db.select().from(users).where(eq(users.role, 'ae'));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!user) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+    
+    return user;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+  
+  // Invitation operations
+  async getInvitation(id: number): Promise<any> {
+    const [invitation] = await db.select().from(invitations).where(eq(invitations.id, id));
+    return invitation;
+  }
+  
+  async getInvitationByEmail(email: string): Promise<any> {
+    const [invitation] = await db.select().from(invitations).where(eq(invitations.email, email));
+    return invitation;
+  }
+  
+  async createInvitation(invitation: { email: string, token: string, role: string, expiresAt: Date, createdBy: number }): Promise<any> {
+    const [result] = await db.insert(invitations).values({
+      email: invitation.email,
+      token: invitation.token,
+      expires: invitation.expiresAt,
+      role: invitation.role as any, // Cast to match the enum type
+      createdBy: invitation.createdBy
+    }).returning();
+    return result;
+  }
+  
+  async updateInvitation(id: number, updates: Partial<{ token: string, expiresAt: Date }>): Promise<any> {
+    // Convert expiresAt to expires to match the database schema
+    const dbUpdates: any = {};
+    if (updates.token) dbUpdates.token = updates.token;
+    if (updates.expiresAt) dbUpdates.expires = updates.expiresAt;
+    
+    const [result] = await db
+      .update(invitations)
+      .set(dbUpdates)
+      .where(eq(invitations.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new Error(`Invitation with ID ${id} not found`);
+    }
+    
+    return result;
+  }
+  
+  async deleteInvitation(id: number): Promise<void> {
+    await db.delete(invitations).where(eq(invitations.id, id));
+  }
+  
+  async getAllInvitations(): Promise<any[]> {
+    return db.select().from(invitations);
   }
 
   // Contract operations
