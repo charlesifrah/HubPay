@@ -51,7 +51,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { formatDate } from '@/lib/utils';
-import { AlertTriangle, Copy as CopyIcon, Info, Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus } from 'lucide-react';
+import { AlertTriangle, Copy as CopyIcon, Info, Loader2, Mail, PlusCircle, RefreshCw, Search, Trash2, UserPlus, Users } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -347,9 +348,12 @@ export default function AEManagementPage() {
 
   return (
     <Layout title="AE Management">
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Account Executive Management</h1>
+      <div>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-6 w-6 text-primary-500 mr-2" />
+            <h2 className="text-2xl font-bold">Account Executive Management</h2>
+          </div>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -369,6 +373,8 @@ export default function AEManagementPage() {
             </Button>
           </div>
         </div>
+        
+        <Separator className="mb-6" />
         
         {/* Delete Confirmation Dialog */}
         <Dialog open={aeToDelete !== null} onOpenChange={(open) => !open && setAeToDelete(null)}>
