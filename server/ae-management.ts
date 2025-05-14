@@ -61,14 +61,15 @@ export function setupAEManagementRoutes(app: Express) {
   // Get all Account Executives (including pending invitations)
   app.get("/api/admin/account-executives", adminOnly, async (req, res) => {
     try {
-      // Get all users with role 'ae'
-      const accountExecutives = await db.select().from(users)
-        .where(eq(users.role, 'ae'))
-        .orderBy(users.name);
+      // Get all users with role 'ae' using storage interface
+      const allUsers = await storage.getAllUsers();
+      const accountExecutives = allUsers
+        .filter(user => user.role === 'ae')
+        .sort((a, b) => a.name.localeCompare(b.name));
       
-      // Get all pending invitations
-      const pendingInvitations = await db.select().from(invitations)
-        .where(eq(invitations.used, false));
+      // Get all pending invitations using storage interface
+      const allInvitations = await storage.getAllInvitations();
+      const pendingInvitations = allInvitations.filter(invite => !invite.used);
       
       // Map users to a safer response object (excluding password)
       const aeList = accountExecutives.map(ae => ({
