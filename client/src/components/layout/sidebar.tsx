@@ -45,6 +45,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       icon: <Users className="mr-3 h-5 w-5" />,
     },
     {
+      title: "Admin Management",
+      href: "/admin/admin-management",
+      icon: <User className="mr-3 h-5 w-5" />,
+    },
+    {
       title: "Upload Contract",
       href: "/admin/upload-contract",
       icon: <Upload className="mr-3 h-5 w-5" />,

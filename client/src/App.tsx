@@ -19,6 +19,7 @@ import UploadInvoice from "@/pages/admin/upload-invoice";
 import PayoutApproval from "@/pages/admin/payout-approval";
 import Reports from "@/pages/admin/reports";
 import AEManagement from "@/pages/admin/ae-management";
+import AdminManagement from "@/pages/admin/admin-management";
 
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";
@@ -35,6 +36,7 @@ function Router() {
       <ProtectedRoute path="/" component={AdminDashboard} adminOnly={true} />
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
       <ProtectedRoute path="/admin/ae-management" component={AEManagement} adminOnly={true} />
+      <ProtectedRoute path="/admin/admin-management" component={AdminManagement} adminOnly={true} />
       <ProtectedRoute path="/admin/upload-contract" component={UploadContract} adminOnly={true} />
       <ProtectedRoute path="/admin/upload-invoice" component={UploadInvoice} adminOnly={true} />
       <ProtectedRoute path="/admin/payout-approval" component={PayoutApproval} adminOnly={true} />
