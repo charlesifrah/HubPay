@@ -336,13 +336,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // For demo purposes, we'll just return success without actually updating
-      // In a real implementation, we would update the user in the database
-      const updatedUser = { 
-        ...user,
-        name,
-        email 
-      };
+      // Actually update the user in the in-memory storage
+      // Update user fields directly in storage
+      const userToUpdate = await storage.getUser(userData.id);
+      if (userToUpdate) {
+        userToUpdate.name = name;
+        userToUpdate.email = email;
+        
+        // If we had a database implementation, we would save changes here
+        console.log(`User data updated: ${userToUpdate.id}, ${userToUpdate.name}, ${userToUpdate.email}`);
+      }
+      
+      const updatedUser = userToUpdate || user;
       
       console.log("Profile updated for user:", updatedUser.id);
       

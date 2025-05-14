@@ -56,8 +56,10 @@ export default function ProfilePage() {
       }
       return await response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    onSuccess: (data) => {
+      // Update the cached user data directly
+      queryClient.setQueryData(["/api/user"], data.user);
+      
       toast({
         title: "Profile updated",
         description: "Your profile information has been updated successfully.",
