@@ -81,7 +81,7 @@ export default function PayoutApproval() {
   });
 
   // Get current user data
-  const { data: currentUser } = useQuery({
+  const { data: currentUser } = useQuery<{id: number, name: string, email: string, role: string}>({
     queryKey: ["/api/user"],
   });
 

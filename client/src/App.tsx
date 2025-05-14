@@ -11,6 +11,7 @@ import RegisterWithInvitation from "@/pages/register-with-invitation";
 import ProfilePage from "@/pages/profile-page";
 import ContractsPage from "@/pages/contracts-page";
 import InvoicesPage from "@/pages/invoices-page";
+import PayoutsPage from "@/pages/payouts-page";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -50,6 +51,7 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/contracts" component={ContractsPage} />
       <ProtectedRoute path="/invoices" component={InvoicesPage} />
+      <ProtectedRoute path="/payouts" component={PayoutsPage} adminOnly={true} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

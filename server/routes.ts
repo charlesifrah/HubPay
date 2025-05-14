@@ -267,6 +267,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error rejecting commission" });
     }
   });
+  
+  // Get Approved Payouts
+  app.get("/api/admin/payouts", async (req, res) => {
+    try {
+      const filterParams = {
+        aeId: req.query.aeId ? parseInt(req.query.aeId as string) : undefined,
+      };
+      
+      const approvedPayouts = await storage.getCommissionsByStatus('approved');
+      
+      // Enhance the commissions with more details
+      const payoutsWithDetails = await Promise.all(
+        approvedPayouts.map(async (payout) => {
+          const invoice = await storage.getInvoice(payout.invoiceId);
+          const contract = invoice ? await storage.getContract(invoice.contractId) : null;
+          const ae = contract ? await storage.getUser(contract.aeId) : null;
+          
+          return {
+            ...payout,
+            contractClientName: contract ? contract.clientName : 'Unknown',
+            contractType: contract ? contract.contractType : 'Unknown',
+            aeName: ae ? ae.name : 'Unknown',
+            invoiceAmount: invoice ? invoice.amount : '0',
+            approvedByName: payout.approvedBy ? 
+              (await storage.getUser(payout.approvedBy))?.name || 'Unknown Admin' : 'Unknown',
+          };
+        })
+      );
+      
+      res.json(payoutsWithDetails);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching approved payouts" });
+    }
+  });
 
   // Reports
   app.get("/api/admin/reports", async (req, res) => {
