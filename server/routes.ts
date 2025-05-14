@@ -297,12 +297,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Profile update endpoint
   app.patch("/api/user/profile", async (req: any, res) => {
-    // Check if user is authenticated by verifying if req.user exists
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
     try {
+      // Get the JWT token from Authorization header
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Unauthorized: No token provided" });
+      }
+      
+      const token = authHeader.split(' ')[1];
+      console.log("Token received:", token ? "Yes" : "No");
+      
+      // Verify the token
+      const userData = await import('./auth').then(auth => auth.verifyToken(token));
+      if (!userData) {
+        return res.status(401).json({ message: "Unauthorized: Invalid token" });
+      }
+      
+      console.log("Token verified, user ID:", userData.id);
+      
+      // Use the user information from the token
+      const user = await storage.getUser(userData.id);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized: User not found" });
+      }
+      
       const { name, email } = req.body;
       
       // Validate input
@@ -311,9 +329,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if email already exists but belongs to a different user
-      if (email !== req.user.email) {
+      if (email !== user.email) {
         const existingUser = await storage.getUserByEmail(email);
-        if (existingUser && existingUser.id !== req.user.id) {
+        if (existingUser && existingUser.id !== user.id) {
           return res.status(400).json({ message: "Email already in use by another account" });
         }
       }
@@ -321,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For demo purposes, we'll just return success without actually updating
       // In a real implementation, we would update the user in the database
       const updatedUser = { 
-        ...req.user,
+        ...user,
         name,
         email 
       };
