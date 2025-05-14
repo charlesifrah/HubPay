@@ -37,10 +37,12 @@ const resetPasswordSchema = z.object({
 export function setupAdminManagementRoutes(app: Express) {
   // Middleware to ensure only admins can access these routes
   const adminOnly = async (req: Request, res: Response, next: Function) => {
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
+    // @ts-ignore - Express session adds this but TypeScript doesn't know about it
+    if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // @ts-ignore - Express session adds this but TypeScript doesn't know about it
     const user = req.user as any;
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: "Forbidden - Admin access required" });
@@ -52,37 +54,39 @@ export function setupAdminManagementRoutes(app: Express) {
   // Get all admins and pending invitations
   app.get("/api/admin/administrators", adminOnly, async (req, res) => {
     try {
-      // Get all active admin users
-      const administrators = await db.select().from(users)
-        .where(eq(users.role, 'admin'));
+      // Get all active admin users - using the storage interface
+      const administrators = await storage.getAllUsers();
       
-      // Get all pending admin invitations
-      const pendingInvitations = await db.select().from(invitations)
-        .where(
-          sql`${invitations.used} = false AND ${invitations.role} = 'admin'`
-        );
+      // Get all pending admin invitations - using the storage interface
+      const pendingInvitations = await storage.getAllInvitations();
+      
+      // Filter administrators to include only admin users
+      const adminUsers = administrators.filter(admin => admin.role === 'admin');
       
       // Map users to a safer response object (excluding password)
-      const adminList = administrators.map(admin => ({
+      const adminList = adminUsers.map(admin => ({
         id: admin.id,
         name: admin.name,
         email: admin.email,
-        status: admin.status,
+        status: admin.status || 'active',
         createdAt: admin.createdAt,
-        type: 'user'
+        type: 'user',
+        isSelf: (req.user as any).id === admin.id
       }));
       
-      // Map pending invitations
+      // Filter and map pending invitations to include only admin invitations
       const now = new Date();
-      const pendingList = pendingInvitations.map(invite => ({
-        id: invite.id,
-        name: 'Pending Registration',
-        email: invite.email,
-        status: now > invite.expires ? 'expired' : 'pending',
-        createdAt: invite.createdAt,
-        expires: invite.expires,
-        type: 'invitation'
-      }));
+      const pendingList = pendingInvitations
+        .filter(invite => !invite.used && invite.role === 'admin')
+        .map(invite => ({
+          id: invite.id,
+          name: 'Pending Registration',
+          email: invite.email,
+          status: now > invite.expires ? 'expired' : 'pending',
+          createdAt: invite.createdAt,
+          expires: invite.expires,
+          type: 'invitation'
+        }));
       
       // Combine both lists and sort by email
       const combinedList = [...adminList, ...pendingList].sort((a, b) => 
@@ -177,14 +181,14 @@ export function setupAdminManagementRoutes(app: Express) {
       const { id } = req.params;
       const userId = parseInt(id);
       
-      // Verify user exists and is an Admin
-      const existingUser = await db.select().from(users).where(eq(users.id, userId));
+      // Verify user exists and is an Admin using storage interface
+      const existingUser = await storage.getUser(userId);
       
-      if (existingUser.length === 0) {
+      if (!existingUser) {
         return res.status(404).json({ message: "Administrator not found" });
       }
       
-      if (existingUser[0].role !== 'admin') {
+      if (existingUser.role !== 'admin') {
         return res.status(400).json({ message: "User is not an administrator" });
       }
       
@@ -193,8 +197,8 @@ export function setupAdminManagementRoutes(app: Express) {
         return res.status(400).json({ message: "Cannot delete your own admin account" });
       }
       
-      // Delete the user
-      await db.delete(users).where(eq(users.id, userId));
+      // Delete the user using storage interface
+      await storage.deleteUser(userId);
       
       res.status(200).json({ message: "Administrator deleted successfully" });
     } catch (error) {
@@ -218,38 +222,35 @@ export function setupAdminManagementRoutes(app: Express) {
       
       const { email } = validationResult.data;
       
-      // Check if email is already registered
-      const existingUser = await db.select().from(users).where(eq(users.email, email));
-      if (existingUser.length > 0) {
+      // Check if email is already registered using storage interface
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
         return res.status(400).json({ message: "Email is already registered" });
       }
       
-      // Check if there's an existing invitation
-      const existingInvite = await db.select().from(invitations).where(eq(invitations.email, email));
+      // Check if there's an existing invitation using storage interface
+      const existingInvite = await storage.getInvitationByEmail(email);
       
-      // Delete existing invitation if it exists
-      if (existingInvite.length > 0) {
-        await db.delete(invitations).where(eq(invitations.email, email));
+      // Delete existing invitation if it exists using storage interface
+      if (existingInvite) {
+        await storage.deleteInvitation(existingInvite.id);
       }
       
       // Get admin ID from authenticated user
       const adminId = (req.user as any).id;
       
-      // Create new invitation
+      // Create new invitation using storage interface
       const inviteToken = generateToken();
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + 72); // 72-hour expiration
       
-      const newInvitations = await db.insert(invitations)
-        .values({
-          email,
-          token: inviteToken,
-          expires: expirationDate,
-          used: false,
-          role: 'admin', // Set role to admin explicitly
-          createdBy: adminId
-        })
-        .returning();
+      const newInvitation = await storage.createInvitation({
+        email,
+        token: inviteToken,
+        role: 'admin', // Set role to admin explicitly
+        expiresAt: expirationDate,
+        createdBy: adminId
+      });
       
       // Generate invitation link
       const inviteLink = `${req.protocol}://${req.get('host')}/register-with-invitation?token=${inviteToken}`;
@@ -280,14 +281,14 @@ export function setupAdminManagementRoutes(app: Express) {
         });
       }
       
-      // Check if admin exists
-      const existingAdmin = await db.select().from(users).where(eq(users.id, userId));
+      // Check if admin exists using storage interface
+      const existingAdmin = await storage.getUser(userId);
       
-      if (existingAdmin.length === 0) {
+      if (!existingAdmin) {
         return res.status(404).json({ message: "Administrator not found" });
       }
       
-      if (existingAdmin[0].role !== 'admin') {
+      if (existingAdmin.role !== 'admin') {
         return res.status(400).json({ message: "User is not an administrator" });
       }
       
@@ -297,14 +298,10 @@ export function setupAdminManagementRoutes(app: Express) {
       // Hash the temporary password
       const hashedPassword = await hashPassword(tempPassword);
       
-      // Update the user's password
-      await db.update(users)
-        .set({
-          password: hashedPassword,
-          updatedAt: new Date(),
-          updatedBy: (req.user as any).id
-        })
-        .where(eq(users.id, userId));
+      // Update the user's password using storage interface
+      await storage.updateUser(userId, {
+        password: hashedPassword,
+      });
       
       // In a real application, you'd send this password via email
       // For demonstration, we'll return it in the response
@@ -324,19 +321,19 @@ export function setupAdminManagementRoutes(app: Express) {
       const { id } = req.params;
       const invitationId = parseInt(id);
       
-      // Check if invitation exists
-      const existingInvitation = await db.select().from(invitations).where(eq(invitations.id, invitationId));
+      // Check if invitation exists using storage interface
+      const existingInvitation = await storage.getInvitation(invitationId);
       
-      if (existingInvitation.length === 0) {
+      if (!existingInvitation) {
         return res.status(404).json({ message: "Invitation not found" });
       }
       
-      if (existingInvitation[0].used) {
+      if (existingInvitation.used) {
         return res.status(400).json({ message: "Invitation has already been used" });
       }
       
-      // Delete the invitation
-      await db.delete(invitations).where(eq(invitations.id, invitationId));
+      // Delete the invitation using storage interface
+      await storage.deleteInvitation(invitationId);
       
       res.status(200).json({ message: "Invitation revoked successfully" });
     } catch (error) {
