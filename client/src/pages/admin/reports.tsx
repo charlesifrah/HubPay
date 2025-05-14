@@ -7,8 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, FileText, Download } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, Download, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 import {
   Card,
   CardContent,
@@ -150,12 +151,27 @@ export default function Reports() {
 
   return (
     <Layout title="Commission Reports">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-6 w-6 text-primary-500 mr-2" />
+          <h2 className="text-2xl font-bold">Commission Reports</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={exportCSV} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button onClick={exportPDF} variant="outline" size="sm">
+            <FileText className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
+        </div>
+      </div>
+      
+      <Separator className="mb-6" />
+      
       <Card>
-        <CardHeader>
-          <CardTitle>Commission Reports</CardTitle>
-          <CardDescription>Generate and export commission data</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Filters Panel */}
             <div className="md:col-span-1 space-y-4">
