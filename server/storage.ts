@@ -660,4 +660,14 @@ export class MemStorage implements IStorage {
 import { DatabaseStorage } from './storage-db';
 
 // Use DatabaseStorage instead of MemStorage for persistence
-export const storage = new MemStorage();
+// Create an instance of MemStorage for development by default
+let _storage: IStorage = new MemStorage();
+
+// Export a function to allow changing the storage implementation
+export function setStorage(storageImplementation: IStorage) {
+  _storage = storageImplementation;
+  console.log("Storage implementation switched");
+}
+
+// Export the current storage implementation
+export const storage = _storage;
