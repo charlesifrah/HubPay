@@ -23,6 +23,7 @@ export interface IStorage {
   getInvoice(id: number): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   getRecentUploads(limit: number): Promise<(Contract | InvoiceWithDetails)[]>;
+  getInvoicesWithDetails(): Promise<InvoiceWithDetails[]>;
 
   // Commission operations
   createCommission(commission: InsertCommission): Promise<Commission>;
@@ -323,6 +324,28 @@ export class MemStorage implements IStorage {
     );
     
     return combined.slice(0, limit);
+  }
+  
+  async getInvoicesWithDetails(): Promise<InvoiceWithDetails[]> {
+    // Create invoices with contract and AE details
+    const invoicesWithDetails = Array.from(this.invoices.values()).map(i => {
+      const contract = this.contracts.get(i.contractId);
+      const ae = contract ? this.users.get(contract.aeId) : undefined;
+      
+      return {
+        ...i,
+        contractClientName: contract ? contract.clientName : 'Unknown',
+        contractAEName: ae ? ae.name : 'Unknown',
+        contractAEId: contract ? contract.aeId : 0
+      };
+    });
+    
+    // Sort by created date (newest first)
+    invoicesWithDetails.sort((a, b) => 
+      b.createdAt.getTime() - a.createdAt.getTime()
+    );
+    
+    return invoicesWithDetails;
   }
 
   // Commission operations
