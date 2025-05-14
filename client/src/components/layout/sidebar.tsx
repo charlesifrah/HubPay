@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,9 +89,12 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       mobile && "w-full"
     )}>
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 bg-primary-500">
-        <Link href={isAdmin ? "/admin/dashboard" : "/ae/dashboard"}>
+        <button 
+          onClick={() => window.location.href = isAdmin ? "/admin/dashboard" : "/ae/dashboard"}
+          className="bg-transparent border-0 p-0"
+        >
           <span className="text-xl font-semibold text-white cursor-pointer">Commission App</span>
-        </Link>
+        </button>
       </div>
 
       <div className="flex flex-col flex-grow p-4 overflow-y-auto">
@@ -111,47 +114,46 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
         <nav className="flex-1 space-y-1">
           {links.map((link) => (
-            <Link
+            <button
               key={link.href}
-              href={link.href}
-              onClick={() => mobile && onClose && onClose()}
+              onClick={() => {
+                if (mobile && onClose) onClose();
+                window.location.href = link.href;
+              }}
+              className={cn(
+                "flex items-center px-4 py-2 text-sm font-medium rounded-md group w-full text-left",
+                isActive(link.href)
+                  ? "text-primary-700 bg-primary-50"
+                  : "text-gray-700 hover:bg-gray-50"
+              )}
             >
-              <a
-                className={cn(
-                  "flex items-center px-4 py-2 text-sm font-medium rounded-md group",
-                  isActive(link.href)
-                    ? "text-primary-700 bg-primary-50"
-                    : "text-gray-700 hover:bg-gray-50"
-                )}
-              >
-                {React.cloneElement(link.icon, {
-                  className: cn(
-                    link.icon.props.className,
-                    isActive(link.href) ? "text-primary-500" : "text-gray-500"
-                  ),
-                })}
-                {link.title}
-              </a>
-            </Link>
+              {React.cloneElement(link.icon, {
+                className: cn(
+                  link.icon.props.className,
+                  isActive(link.href) ? "text-primary-500" : "text-gray-500"
+                ),
+              })}
+              {link.title}
+            </button>
           ))}
         </nav>
       </div>
 
       <div className="p-4 border-t border-gray-200 space-y-2">
-        <Link href="/profile">
-          <a className={cn(
-            "flex items-center px-4 py-2 text-sm font-medium rounded-md group",
+        <button 
+          onClick={() => window.location.href = "/profile"}
+          className={cn(
+            "flex items-center px-4 py-2 text-sm font-medium rounded-md group w-full",
             isActive("/profile")
               ? "text-primary-700 bg-primary-50"
               : "text-gray-700 hover:bg-gray-50 border border-gray-200"
           )}>
-            <User className={cn(
-              "mr-2 h-4 w-4",
-              isActive("/profile") ? "text-primary-500" : "text-gray-500"
-            )} />
-            My Profile
-          </a>
-        </Link>
+          <User className={cn(
+            "mr-2 h-4 w-4",
+            isActive("/profile") ? "text-primary-500" : "text-gray-500"
+          )} />
+          My Profile
+        </button>
         
         <Button
           variant="outline"
