@@ -161,7 +161,7 @@ export class MemStorage implements IStorage {
     this.invoices.set(invoice.id, invoice);
     this.invoiceId = 2; // Set to next available ID
     
-    // Add sample commission directly
+    // Add sample commission directly with a fixed date (not current time)
     const commission: Commission = {
       id: 1,
       aeId: 2,
@@ -175,7 +175,8 @@ export class MemStorage implements IStorage {
       approvedAt: null,
       approvedBy: null,
       rejectionReason: null,
-      createdAt: new Date()
+      // Use a fixed historical date (May 1, 2025) instead of current date/time
+      createdAt: new Date('2025-05-01T10:30:00')
     };
     this.commissions.set(commission.id, commission);
     this.commissionId = 2; // Set to next available ID
