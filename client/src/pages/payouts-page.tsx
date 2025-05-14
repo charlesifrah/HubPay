@@ -123,9 +123,9 @@ export default function PayoutsPage() {
 
   return (
     <Layout title="Payouts">
-      <div className="flex items-center mb-4">
-        <CreditCard className="h-6 w-6 mr-2" />
-        <h1 className="text-2xl font-semibold">View Payouts</h1>
+      <div className="flex items-center gap-2 mb-4">
+        <CreditCard className="h-6 w-6 text-primary-500 mr-2" />
+        <h2 className="text-2xl font-bold">View Payouts</h2>
       </div>
       <Separator className="my-4" />
       
