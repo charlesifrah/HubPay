@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch: refetchUser  // Explicitly extract the refetch function
   } = useQuery<UserData | null>({
     queryKey: ["/api/user"],
     queryFn: async () => {
@@ -54,7 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          // Add cache-busting to make sure we don't get a cached response
+          cache: 'no-store'
         });
         
         if (response.status === 401) {
@@ -63,12 +66,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         if (!response.ok) throw new Error('Failed to fetch user data');
-        return await response.json();
+        const userData = await response.json();
+        console.log('Refreshed user data:', userData);
+        return userData;
       } catch (error) {
         console.error('Error fetching user data:', error);
         return null;
       }
-    }
+    },
+    // Increase refetch frequency
+    staleTime: 60000, // 1 minute
+    refetchInterval: 60000 // Refetch every minute
   });
 
   const loginMutation = useMutation({

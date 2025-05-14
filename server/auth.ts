@@ -126,11 +126,16 @@ export function setupAuth(app: Express) {
       return res.status(401).json({ message: "Unauthorized, invalid token" });
     }
 
+    // Always get the fresh user data from storage to reflect any updates
     const user = await storage.getUser(payload.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Log the current state of the user to debug
+    console.log("Current user data:", { id: user.id, email: user.email, name: user.name, role: user.role });
+    
+    // Send the current user data
     res.json({ id: user.id, email: user.email, name: user.name, role: user.role });
   });
 

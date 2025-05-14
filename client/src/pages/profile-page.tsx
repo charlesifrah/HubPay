@@ -60,6 +60,9 @@ export default function ProfilePage() {
       // Update the cached user data directly
       queryClient.setQueryData(["/api/user"], data.user);
       
+      // Force refetch user data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       toast({
         title: "Profile updated",
         description: "Your profile information has been updated successfully.",
