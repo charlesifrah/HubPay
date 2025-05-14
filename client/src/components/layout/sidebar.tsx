@@ -33,12 +33,17 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
   const isAdmin = user?.role === "admin";
 
-  const adminLinks = [
+  // Dashboard links for Admins
+  const adminDashboardLinks = [
     {
       title: "Dashboard",
       href: "/admin/dashboard",
       icon: <PieChart className="mr-3 h-5 w-5" />,
     },
+  ];
+  
+  // User Management links for Admins
+  const adminManagementLinks = [
     {
       title: "AE Management",
       href: "/admin/ae-management",
@@ -49,16 +54,38 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       href: "/admin/admin-management",
       icon: <User className="mr-3 h-5 w-5" />,
     },
+  ];
+  
+  // Contract related links for Admins
+  const adminContractLinks = [
+    {
+      title: "View Contracts",
+      href: "/contracts",
+      icon: <FileSpreadsheet className="mr-3 h-5 w-5" />,
+    },
     {
       title: "Upload Contract",
       href: "/admin/upload-contract",
       icon: <Upload className="mr-3 h-5 w-5" />,
+    },
+  ];
+  
+  // Invoice related links for Admins
+  const adminInvoiceLinks = [
+    {
+      title: "View Invoices",
+      href: "/invoices",
+      icon: <FileBox className="mr-3 h-5 w-5" />,
     },
     {
       title: "Upload Invoice",
       href: "/admin/upload-invoice",
       icon: <FileText className="mr-3 h-5 w-5" />,
     },
+  ];
+  
+  // Commission related links for Admins
+  const adminCommissionLinks = [
     {
       title: "Approve Payouts",
       href: "/admin/payout-approval",
@@ -70,8 +97,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       icon: <BarChart3 className="mr-3 h-5 w-5" />,
     },
   ];
-
-  const aeLinks = [
+  
+  // Dashboard links for AEs
+  const aeDashboardLinks = [
     {
       title: "My Dashboard",
       href: "/ae/dashboard",
@@ -83,8 +111,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       icon: <DollarSign className="mr-3 h-5 w-5" />,
     },
   ];
-
-  const commonLinks = [
+  
+  // Common links for AEs
+  const aeCommonLinks = [
     {
       title: "View Contracts",
       href: "/contracts",
@@ -97,7 +126,17 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
     },
   ];
 
-  const links = isAdmin ? [...adminLinks, ...commonLinks] : [...aeLinks, ...commonLinks];
+  // Create organized link arrays for display
+  const links = isAdmin ? [
+    ...adminDashboardLinks,
+    ...adminManagementLinks,
+    ...adminContractLinks,
+    ...adminInvoiceLinks,
+    ...adminCommissionLinks
+  ] : [
+    ...aeDashboardLinks,
+    ...aeCommonLinks
+  ];
 
   const handleLogout = () => {
     logoutMutation.mutate();
