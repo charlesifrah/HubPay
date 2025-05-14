@@ -239,10 +239,15 @@ export class MemStorage implements IStorage {
 
   async getRecentUploads(limit: number): Promise<(Contract | InvoiceWithDetails)[]> {
     // Combine contracts and invoices, sort by createdAt desc, and limit
-    const contractsWithType = Array.from(this.contracts.values()).map(c => ({ 
-      ...c, 
-      type: 'contract' 
-    }));
+    const contractsWithType = Array.from(this.contracts.values()).map(c => {
+      // Get the AE name from the users map
+      const ae = this.users.get(c.aeId);
+      return {
+        ...c, 
+        type: 'contract',
+        aeName: ae ? ae.name : 'Unknown'
+      };
+    });
     
     const invoicesWithDetails = Array.from(this.invoices.values()).map(i => {
       const contract = this.contracts.get(i.contractId);

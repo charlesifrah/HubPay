@@ -39,7 +39,11 @@ export default function AdminDashboard() {
         value: upload.type === 'contract' 
           ? new Intl.NumberFormat('en-US').format(Number(upload.contractValue))
           : new Intl.NumberFormat('en-US').format(Number(upload.amount)),
-        date: formatDistanceToNow(new Date(upload.createdAt), { addSuffix: true }),
+        date: upload.createdAt ? new Date(upload.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric'
+        }) : 'Unknown',
         status: upload.type === 'invoice' && upload.status === 'pending' ? 'pending' : 'processed'
       }))
     : [];
