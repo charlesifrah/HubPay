@@ -16,6 +16,7 @@ import {
   Users,
   FileSpreadsheet,
   FileBox,
+  CreditCard,
 } from "lucide-react";
 
 interface SidebarProps {
