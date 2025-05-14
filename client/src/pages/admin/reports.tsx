@@ -296,18 +296,8 @@ export default function Reports() {
 
             {/* Report Results */}
             <div className="md:col-span-3">
-              <div className="mb-6 flex justify-between items-center">
+              <div className="mb-6">
                 <h4 className="text-base font-medium text-gray-900">Report Results</h4>
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={exportCSV}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    CSV
-                  </Button>
-                  <Button variant="outline" onClick={exportPDF}>
-                    <Download className="mr-2 h-4 w-4" />
-                    PDF
-                  </Button>
-                </div>
               </div>
 
               {/* Summary Cards */}
