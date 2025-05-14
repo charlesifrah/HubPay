@@ -92,6 +92,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       icon: <ListChecks className="mr-3 h-5 w-5" />,
     },
     {
+      title: "View Payouts",
+      href: "/payouts",
+      icon: <CreditCard className="mr-3 h-5 w-5" />,
+    },
+    {
       title: "Reports",
       href: "/admin/reports",
       icon: <BarChart3 className="mr-3 h-5 w-5" />,

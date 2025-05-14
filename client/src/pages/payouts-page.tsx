@@ -122,7 +122,7 @@ export default function PayoutsPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Payouts">
       <div className="flex items-center mb-4">
         <CreditCard className="h-6 w-6 mr-2" />
         <h1 className="text-2xl font-semibold">View Payouts</h1>
