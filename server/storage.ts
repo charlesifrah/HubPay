@@ -165,8 +165,8 @@ export class MemStorage implements IStorage {
     
     this.contractId = 3; // Set to next available ID
     
-    // Add sample invoice directly
-    const invoice: Invoice = {
+    // Add sample invoice for Acme Corp
+    const invoice1: Invoice = {
       id: 1,
       contractId: contract1.id,
       amount: "64000",
@@ -176,14 +176,28 @@ export class MemStorage implements IStorage {
       createdBy: 1,
       createdAt: new Date()
     };
-    this.invoices.set(invoice.id, invoice);
-    this.invoiceId = 2; // Set to next available ID
+    this.invoices.set(invoice1.id, invoice1);
     
-    // Add sample commission directly with a fixed date (not current time)
-    const commission: Commission = {
+    // Add sample invoice for Apple
+    const invoice2: Invoice = {
+      id: 2,
+      contractId: contract2.id,
+      amount: "1000000",
+      invoiceDate: new Date().toISOString().split('T')[0],
+      revenueType: "recurring",
+      notes: "First annual payment",
+      createdBy: 1,
+      createdAt: new Date()
+    };
+    this.invoices.set(invoice2.id, invoice2);
+    
+    this.invoiceId = 3; // Set to next available ID
+    
+    // Add sample commission for Acme Corp
+    const commission1: Commission = {
       id: 1,
       aeId: 2,
-      invoiceId: invoice.id,
+      invoiceId: invoice1.id,
       baseCommission: "6400",
       pilotBonus: "0",
       multiYearBonus: "1600",
@@ -193,11 +207,31 @@ export class MemStorage implements IStorage {
       approvedAt: null,
       approvedBy: null,
       rejectionReason: null,
+      oteApplied: false,
       // Use a fixed historical date (May 1, 2025) instead of current date/time
       createdAt: new Date('2025-05-01T10:30:00')
     };
-    this.commissions.set(commission.id, commission);
-    this.commissionId = 2; // Set to next available ID
+    this.commissions.set(1, commission1);
+    
+    // Add sample commission for Apple
+    const commission2: Commission = {
+      id: 2,
+      aeId: 2,
+      invoiceId: invoice2.id,
+      baseCommission: "100000",
+      pilotBonus: "0",
+      multiYearBonus: "10000",
+      upfrontBonus: "0",
+      totalCommission: "110000",
+      status: "pending",
+      approvedAt: null,
+      approvedBy: null,
+      rejectionReason: null,
+      oteApplied: false,
+      createdAt: new Date('2025-05-13T14:45:00')
+    };
+    this.commissions.set(2, commission2);
+    this.commissionId = 3; // Set to next available ID
   }
 
   // User operations
