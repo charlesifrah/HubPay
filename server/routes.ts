@@ -5,6 +5,7 @@ import { setupAuth } from "./auth";
 import { CommissionEngine } from "./commissionEngine";
 import { setupAEManagementRoutes } from "./ae-management";
 import { setupAdminManagementRoutes } from "./admin-management";
+import { clearDatabase } from "./clear-database";
 import { z } from "zod";
 import { insertContractSchema, insertInvoiceSchema } from "@shared/schema";
 
@@ -17,6 +18,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up Admin management routes
   setupAdminManagementRoutes(app);
+  
+  // Database management API endpoint
+  app.post("/api/admin/clear-database", clearDatabase);
 
   // Admin Dashboard Overview
   app.get("/api/admin/dashboard", async (req, res) => {

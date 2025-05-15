@@ -3,6 +3,18 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   DollarSign,
   ListChecks,
@@ -17,6 +29,8 @@ import {
   FileSpreadsheet,
   FileBox,
   CreditCard,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -27,6 +41,9 @@ interface SidebarProps {
 export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const [clearDatabaseDialogOpen, setClearDatabaseDialogOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const { toast } = useToast();
 
   const isActive = (path: string) => {
     return location === path;
