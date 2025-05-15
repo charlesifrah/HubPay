@@ -66,7 +66,7 @@ export function UploadContractModal({ isOpen, onClose }: UploadContractModalProp
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get a list of AEs for the dropdown
-  const { data: aes, isLoading: isLoadingAEs } = useQuery({
+  const { data: aes = [], isLoading: isLoadingAEs } = useQuery({
     queryKey: ["/api/aes"],
   });
 

@@ -83,7 +83,7 @@ export function UploadInvoiceModal({ isOpen, onClose }: UploadInvoiceModalProps)
   const [selectedContract, setSelectedContract] = useState<any>(null);
 
   // Get list of contracts for the dropdown
-  const { data: contracts, isLoading: isLoadingContracts } = useQuery({
+  const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
     queryKey: ["/api/contracts"],
   });
 
