@@ -434,7 +434,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(commissions)
       .where(
-        eq(commissions.status, 'approved').or(eq(commissions.status, 'paid'))
+        sql`${commissions.status} = 'approved' OR ${commissions.status} = 'paid'`
       );
 
     return result[0] || { total: "0.00", count: 0 };
@@ -451,7 +451,7 @@ export class DatabaseStorage implements IStorage {
       .from(commissions)
       .leftJoin(users, eq(commissions.aeId, users.id))
       .where(
-        eq(commissions.status, 'approved').or(eq(commissions.status, 'paid'))
+        sql`${commissions.status} = 'approved' OR ${commissions.status} = 'paid'`
       )
       .groupBy(commissions.aeId, users.name);
 
@@ -530,10 +530,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(commissions.aeId, aeId),
           gte(commissions.createdAt, firstDayOfMonth),
-          or(
-            eq(commissions.status, 'approved'),
-            eq(commissions.status, 'paid')
-          )
+          sql`(${commissions.status} = 'approved' OR ${commissions.status} = 'paid')`
         )
       );
 
@@ -551,10 +548,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(commissions.aeId, aeId),
           gte(commissions.createdAt, firstDayOfYear),
-          or(
-            eq(commissions.status, 'approved'),
-            eq(commissions.status, 'paid')
-          )
+          sql`(${commissions.status} = 'approved' OR ${commissions.status} = 'paid')`
         )
       );
   }
