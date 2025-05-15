@@ -373,33 +373,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPendingCommissions(filters?: { aeId?: number }): Promise<CommissionWithDetails[]> {
-    let query = db
-      .select({
-        commission: commissions,
-        invoiceAmount: invoices.amount,
-        contractClientName: contracts.clientName,
-        contractType: contracts.contractType,
-        aeName: users.name
-      })
-      .from(commissions)
-      .leftJoin(invoices, eq(commissions.invoiceId, invoices.id))
-      .leftJoin(contracts, eq(invoices.contractId, contracts.id))
-      .leftJoin(users, eq(commissions.aeId, users.id))
-      .where(eq(commissions.status, 'pending'));
-
+    // Get all pending commissions
+    let pendingCommissionsQuery = db.select().from(commissions).where(eq(commissions.status, 'pending'));
+    
+    // Apply AE filter if provided
     if (filters?.aeId) {
-      query = query.where(eq(commissions.aeId, filters.aeId));
+      pendingCommissionsQuery = pendingCommissionsQuery.where(eq(commissions.aeId, filters.aeId));
     }
-
-    const results = await query;
-
-    return results.map(({ commission, invoiceAmount, contractClientName, contractType, aeName }) => ({
-      ...commission,
-      invoiceAmount: invoiceAmount?.toString() || '0',
-      contractClientName: contractClientName || 'Unknown Client',
-      contractType: contractType || 'unknown',
-      aeName: aeName || 'Unknown AE'
+    
+    const pendingCommissions = await pendingCommissionsQuery;
+    
+    // For each commission, get the associated data and build the response object
+    const results = await Promise.all(pendingCommissions.map(async (commission) => {
+      // Get invoice
+      const invoiceResult = await db.select().from(invoices).where(eq(invoices.id, commission.invoiceId));
+      const invoice = invoiceResult[0]; 
+      
+      if (!invoice) {
+        console.error(`Invoice ${commission.invoiceId} not found for commission ${commission.id}`);
+        return null;
+      }
+      
+      // Get contract
+      const contractResult = await db.select().from(contracts).where(eq(contracts.id, invoice.contractId));
+      const contract = contractResult[0];
+      
+      if (!contract) {
+        console.error(`Contract ${invoice.contractId} not found for invoice ${invoice.id}`);
+        return null;
+      }
+      
+      // Get AE
+      const aeResult = await db.select().from(users).where(eq(users.id, commission.aeId));
+      const ae = aeResult[0];
+      
+      if (!ae) {
+        console.error(`AE ${commission.aeId} not found for commission ${commission.id}`);
+        return null;
+      }
+      
+      return {
+        ...commission,
+        invoiceAmount: invoice.amount,
+        contractClientName: contract.clientName,
+        contractType: contract.contractType,
+        aeName: ae.name
+      };
     }));
+    
+    // Filter out any null values (where we couldn't find related data)
+    return results.filter(item => item !== null) as CommissionWithDetails[];
   }
 
   // AE dashboard
