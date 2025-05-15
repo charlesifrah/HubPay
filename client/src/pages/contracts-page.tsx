@@ -110,7 +110,7 @@ export default function ContractsPage() {
                     <TableCell>{contract.aeName}</TableCell>
                     <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
                     <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
-                    <TableCell>{contract.contractLength} months</TableCell>
+                    <TableCell>{contract.contractLength} {contract.contractLength === 1 ? 'year' : 'years'}</TableCell>
                     <TableCell>{contract.paymentTerms}</TableCell>
                     <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
                   </TableRow>
