@@ -15,8 +15,6 @@ import PayoutsPage from "@/pages/payouts-page";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
-import UploadContract from "@/pages/admin/upload-contract";
-import UploadInvoice from "@/pages/admin/upload-invoice";
 import PayoutApproval from "@/pages/admin/payout-approval";
 import Reports from "@/pages/admin/reports";
 import AEManagement from "@/pages/admin/ae-management";
@@ -38,8 +36,7 @@ function Router() {
       <ProtectedRoute path="/admin/dashboard" component={AdminDashboard} adminOnly={true} />
       <ProtectedRoute path="/admin/ae-management" component={AEManagement} adminOnly={true} />
       <ProtectedRoute path="/admin/admin-management" component={AdminManagement} adminOnly={true} />
-      <ProtectedRoute path="/admin/upload-contract" component={UploadContract} adminOnly={true} />
-      <ProtectedRoute path="/admin/upload-invoice" component={UploadInvoice} adminOnly={true} />
+      {/* Upload routes removed - now using modals */}
       <ProtectedRoute path="/admin/payout-approval" component={PayoutApproval} adminOnly={true} />
       <ProtectedRoute path="/admin/reports" component={Reports} adminOnly={true} />
       
