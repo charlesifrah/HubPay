@@ -343,11 +343,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(contracts.createdAt))
       .limit(limit);
 
-    const recentContracts = recentContractsQuery.map(({ contract, aeName }) => ({
-      ...contract,
-      type: 'contract',
-      aeName: aeName || 'Unknown AE'
-    }));
+    const recentContracts = recentContractsQuery.map(({ contract, aeName }) => {
+      console.log("Contract with AE data:", { contract, aeName });
+      return {
+        ...contract,
+        type: 'contract',
+        aeName: aeName || 'Unknown AE'
+      };
+    });
 
     // Get recent invoices with details
     const recentInvoicesQuery = await db
