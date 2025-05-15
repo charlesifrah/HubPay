@@ -33,6 +33,11 @@ export interface IStorage {
   getContract(id: number): Promise<Contract | undefined>;
   createContract(contract: InsertContract): Promise<Contract>;
   getAllContracts(): Promise<ContractWithAE[]>;
+  deleteContract(id: number): Promise<void>;
+  
+  // Helper operations for contract and invoice relationships
+  getInvoicesForContract(contractId: number): Promise<Invoice[]>;
+  getInvoicesWithDetails(): Promise<InvoiceWithDetails[]>;
 
   // Invoice operations
   getInvoice(id: number): Promise<Invoice | undefined>;
@@ -87,11 +92,11 @@ export interface IStorage {
   }): Promise<any>;
 
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any because SessionStore type has issues
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any type for session store
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 

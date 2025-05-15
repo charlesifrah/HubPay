@@ -1,4 +1,4 @@
-import { Express, Request, Response } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
 import { setupAuth } from "./auth";
@@ -8,6 +8,24 @@ import { setupAdminManagementRoutes } from "./admin-management";
 import { clearDatabase } from "./clear-database";
 import { z } from "zod";
 import { insertContractSchema, insertInvoiceSchema } from "@shared/schema";
+
+// Add types for Express user authentication
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      email: string;
+      name: string;
+      role: string;
+    }
+    
+    interface Request {
+      isAuthenticated(): boolean;
+      logout(callback: (err: any) => void): void;
+      login(user: any, callback: (err: any) => void): void;
+    }
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
