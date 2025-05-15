@@ -48,14 +48,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       try {
-        recentUploads = await storage.getRecentUploads(10);
+        recentUploads = await getStorage().getRecentUploads(10);
         console.log("Recent uploads count:", recentUploads.length);
       } catch (err) {
         console.error("Error getting recent uploads:", err);
       }
       
       try {
-        pendingPayouts = await storage.getCommissionsByStatus("pending");
+        pendingPayouts = await getStorage().getCommissionsByStatus("pending");
         console.log("Pending payouts count:", pendingPayouts.length);
       } catch (err) {
         console.error("Error getting pending payouts:", err);
