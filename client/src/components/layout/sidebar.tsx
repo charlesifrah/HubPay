@@ -164,6 +164,35 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+  
+  const handleClearDatabase = async () => {
+    if (!isAdmin) return;
+    
+    try {
+      setIsClearing(true);
+      
+      const response = await apiRequest('POST', '/api/admin/clear-database');
+      const result = await response.json();
+      
+      toast({
+        title: "Database cleared successfully",
+        description: `Deleted ${result.deletedCounts.contracts} contracts, ${result.deletedCounts.invoices} invoices, and ${result.deletedCounts.commissions} commissions.`,
+        variant: "default",
+      });
+      
+      // Refresh the page to update data
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      toast({
+        title: "Failed to clear database",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClearing(false);
+      setClearDatabaseDialogOpen(false);
+    }
+  };
 
   return (
     <div className={cn(
@@ -222,6 +251,48 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       </div>
 
       <div className="p-4 border-t border-gray-200 space-y-2">
+        {isAdmin && (
+          <>
+            <Button
+              variant="destructive"
+              onClick={() => setClearDatabaseDialogOpen(true)}
+              className="w-full justify-start"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear Database
+            </Button>
+            
+            <AlertDialog open={clearDatabaseDialogOpen} onOpenChange={setClearDatabaseDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action will permanently delete all contracts, invoices, and commissions from the database.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isClearing}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleClearDatabase} 
+                    disabled={isClearing}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isClearing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Clearing...
+                      </>
+                    ) : (
+                      'Yes, Clear Database'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
+        
         <button 
           onClick={() => {
             if (mobile && onClose) onClose();
