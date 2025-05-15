@@ -31,21 +31,31 @@ export default function AdminDashboard() {
 
   // Format data for recent uploads table
   const recentUploads: RecentUpload[] = !isLoading && !error && data?.recentUploads
-    ? data.recentUploads.map((upload: any) => ({
-        id: upload.id,
-        type: upload.type as 'contract' | 'invoice',
-        clientName: upload.type === 'contract' ? upload.clientName : upload.contractClientName,
-        aeName: upload.type === 'contract' ? upload.aeName : upload.contractAEName,
-        value: upload.type === 'contract' 
-          ? new Intl.NumberFormat('en-US').format(Number(upload.contractValue))
-          : new Intl.NumberFormat('en-US').format(Number(upload.amount)),
-        date: upload.createdAt ? new Date(upload.createdAt).toLocaleDateString('en-US', {
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric'
-        }) : 'Unknown',
-        status: upload.type === 'invoice' && upload.status === 'pending' ? 'pending' : 'processed'
-      }))
+    ? data.recentUploads.map((upload: any) => {
+        // For debugging
+        console.log("Processing upload:", upload);
+        
+        // Determine if this is a contract or invoice based on fields present
+        const isContract = upload.clientName !== undefined && upload.contractValue !== undefined;
+        const isInvoice = upload.contractId !== undefined && upload.amount !== undefined;
+        const type = isContract ? 'contract' : (isInvoice ? 'invoice' : upload.type || 'unknown');
+        
+        return {
+          id: upload.id,
+          type: type as 'contract' | 'invoice',
+          clientName: type === 'contract' ? upload.clientName : upload.contractClientName,
+          aeName: type === 'contract' ? upload.aeName : upload.contractAEName,
+          value: type === 'contract' 
+            ? new Intl.NumberFormat('en-US').format(Number(upload.contractValue || 0))
+            : new Intl.NumberFormat('en-US').format(Number(upload.amount || 0)),
+          date: upload.createdAt ? new Date(upload.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric'
+          }) : 'Unknown',
+          status: type === 'invoice' && upload.status === 'pending' ? 'pending' : 'processed'
+        };
+      })
     : [];
 
   return (

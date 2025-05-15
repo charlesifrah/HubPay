@@ -331,13 +331,23 @@ export class DatabaseStorage implements IStorage {
     return newInvoice;
   }
 
-  async getRecentUploads(limit: number): Promise<(Contract | InvoiceWithDetails)[]> {
-    // Get recent contracts
-    const recentContracts = await db
-      .select()
+  async getRecentUploads(limit: number): Promise<any[]> {
+    // Get recent contracts with user information
+    const recentContractsQuery = await db
+      .select({
+        contract: contracts,
+        aeName: users.name
+      })
       .from(contracts)
+      .leftJoin(users, eq(contracts.aeId, users.id))
       .orderBy(desc(contracts.createdAt))
       .limit(limit);
+
+    const recentContracts = recentContractsQuery.map(({ contract, aeName }) => ({
+      ...contract,
+      type: 'contract',
+      aeName: aeName || 'Unknown AE'
+    }));
 
     // Get recent invoices with details
     const recentInvoicesQuery = await db
@@ -355,6 +365,7 @@ export class DatabaseStorage implements IStorage {
 
     const recentInvoices = recentInvoicesQuery.map(({ invoice, contractClientName, contractAEName, contractAEId }) => ({
       ...invoice,
+      type: 'invoice',
       contractClientName: contractClientName || 'Unknown Client',
       contractAEName: contractAEName || 'Unknown AE',
       contractAEId: contractAEId || 0
@@ -362,7 +373,12 @@ export class DatabaseStorage implements IStorage {
 
     // Combine and sort by createdAt
     const combined = [...recentContracts, ...recentInvoices];
-    combined.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    combined.sort((a, b) => {
+      // Handle null createdAt dates
+      const aTime = a.createdAt ? a.createdAt.getTime() : 0;
+      const bTime = b.createdAt ? b.createdAt.getTime() : 0;
+      return bTime - aTime;
+    });
     
     return combined.slice(0, limit);
   }
