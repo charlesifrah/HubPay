@@ -134,10 +134,16 @@ export default function AEDashboard() {
                 ${Number(oteProgress.current).toLocaleString()} of $1,000,000
               </span>
               <span className="text-sm font-medium text-primary-600">
-                {oteProgress.percentage.toFixed(1)}%
+                {oteProgress.percentage.toFixed(2)}%
               </span>
             </div>
-            <ProgressBar value={oteProgress.percentage} height="h-4" showLabel={false} />
+            {/* Custom progress bar implementation */}
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div
+                className="bg-primary-600 h-4 rounded-full"
+                style={{ width: `${oteProgress.percentage}%` }}
+              ></div>
+            </div>
             <div className="mt-4 text-sm text-gray-500">
               <p>
                 {oteProgress.percentage < 50 
