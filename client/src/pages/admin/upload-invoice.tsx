@@ -244,7 +244,7 @@ export default function UploadInvoice() {
                       control={form.control}
                       name="amount"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                           <FormLabel>Invoice Amount</FormLabel>
                           <FormControl>
                             <div className="relative">
