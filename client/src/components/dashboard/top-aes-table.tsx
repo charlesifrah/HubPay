@@ -73,17 +73,22 @@ export function TopAEsTable({ aes }: TopAEsTableProps) {
                   <div className="text-sm text-gray-900">${ae.avgDealValue}</div>
                 </TableCell>
                 <TableCell>
-                  {/* Custom progress bar implementation with debug */}
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-primary-600 h-2.5 rounded-full"
-                      style={{ width: `${ae.oteProgress}%` }}
-                    ></div>
-                  </div>
+                  {/* Custom table-based progress bar for maximum compatibility */}
+                  <table className="w-full h-2.5 border-collapse">
+                    <tbody>
+                      <tr>
+                        <td 
+                          className="bg-primary-600 rounded-l-full h-2.5 p-0 m-0"
+                          style={{ width: `${ae.oteProgress}%` }}
+                        ></td>
+                        <td 
+                          className="bg-gray-200 rounded-r-full h-2.5 p-0 m-0"
+                          style={{ width: `${100 - ae.oteProgress}%` }}
+                        ></td>
+                      </tr>
+                    </tbody>
+                  </table>
                   <div className="text-xs text-gray-500 mt-1">{ae.oteProgress.toFixed(2)}% to $1M</div>
-                  <div className="text-xs text-red-500 mt-1">
-                    Debug: width={ae.oteProgress}%, type={typeof ae.oteProgress}
-                  </div>
                 </TableCell>
               </TableRow>
             ))
