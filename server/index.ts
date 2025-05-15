@@ -39,15 +39,18 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Switch to database storage in production
-  if (app.get("env") !== "development") {
-    try {
-      // Use database storage in production
-      console.log("Using DatabaseStorage for production environment");
-      const dbStorage = new DatabaseStorage();
-      setStorage(dbStorage);
-      
-      // Run database seeding script to create initial data if needed
+  // Always use database storage for persistence
+  try {
+    console.log("Initializing database storage for persistence");
+    const dbStorage = new DatabaseStorage();
+    setStorage(dbStorage);
+    
+    // Check if we need to seed the database
+    const needsSeeding = await dbStorage.shouldSeedDatabase();
+    
+    if (needsSeeding) {
+      console.log("Database needs seeding, running seed script...");
+      // Run database seeding script to create initial data
       const { spawn } = require('child_process');
       const seedProcess = spawn('node', ['-r', 'tsx', 'server/seed-db.ts']);
       
@@ -62,12 +65,12 @@ app.use((req, res, next) => {
       seedProcess.on('close', (code: number) => {
         console.log(`Seed script exited with code ${code}`);
       });
-    } catch (error) {
-      console.error("Failed to initialize database storage:", error);
-      console.log("Falling back to in-memory storage");
+    } else {
+      console.log("Database already has data, skipping seeding");
     }
-  } else {
-    console.log("Using in-memory storage for development environment");
+  } catch (error) {
+    console.error("CRITICAL ERROR: Failed to initialize database storage:", error);
+    process.exit(1); // Exit with error code if database setup fails
   }
   
   const server = await registerRoutes(app);

@@ -9,6 +9,9 @@ import { pool } from "./db";
 const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
+  // Database initialization
+  shouldSeedDatabase(): Promise<boolean>;
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -96,6 +99,18 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true,
       tableName: 'session'
     });
+  }
+  
+  // Check if the database needs to be seeded (no users exist)
+  async shouldSeedDatabase(): Promise<boolean> {
+    try {
+      const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+      return userCount[0].count === 0;
+    } catch (error) {
+      console.error("Error checking if database needs seeding:", error);
+      // Return true to ensure tables are created
+      return true;
+    }
   }
 
   // User operations

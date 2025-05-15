@@ -8,6 +8,9 @@ import createMemoryStore from "memorystore";
 const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
+  // Database initialization
+  shouldSeedDatabase(): Promise<boolean>;
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -99,6 +102,12 @@ export class MemStorage implements IStorage {
   private commissionId: number;
   private invitationId: number;
   sessionStore: session.SessionStore;
+  
+  // Check if database needs seeding (always returns false for in-memory)
+  async shouldSeedDatabase(): Promise<boolean> {
+    // In-memory storage already seeded in constructor
+    return false;
+  }
 
   constructor() {
     this.users = new Map();
