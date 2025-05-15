@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { Express } from "express";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { LoginUser, InsertUser, User } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -55,13 +55,13 @@ export function setupAuth(app: Express) {
         role: z.enum(['admin', 'ae'])
       }).parse(userData);
 
-      const existingUser = await storage.getUserByEmail(validatedData.email);
+      const existingUser = await getStorage().getUserByEmail(validatedData.email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
       const hashedPassword = await hashPassword(validatedData.password);
-      const user = await storage.createUser({
+      const user = await getStorage().createUser({
         ...validatedData,
         password: hashedPassword
       });
@@ -83,7 +83,7 @@ export function setupAuth(app: Express) {
       const { email, password } = req.body as LoginUser;
       console.log("Login attempt for:", email);
 
-      const user = await storage.getUserByEmail(email);
+      const user = await getStorage().getUserByEmail(email);
       console.log("User found:", user ? "Yes" : "No");
       
       if (!user) {
@@ -127,7 +127,7 @@ export function setupAuth(app: Express) {
     }
 
     // Always get the fresh user data from storage to reflect any updates
-    const user = await storage.getUser(payload.id);
+    const user = await getStorage().getUser(payload.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

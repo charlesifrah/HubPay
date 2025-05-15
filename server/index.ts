@@ -1,8 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { DatabaseStorage } from "./storage-db";
-import { storage, setStorage } from "./storage";
+import { initializeStorage } from "./storage";
+import { eq, sql } from 'drizzle-orm';
+import { contracts, users, invoices, commissions } from '@shared/schema';
+import { db } from './db';
+import { spawn } from 'child_process';
 
 const app = express();
 app.use(express.json());
@@ -39,19 +42,28 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Always use database storage for persistence
+  // Initialize database storage
   try {
-    console.log("Initializing database storage for persistence");
-    const dbStorage = new DatabaseStorage();
-    setStorage(dbStorage);
+    // Initialize the storage with database implementation only
+    const storage = await initializeStorage();
     
-    // Check if we need to seed the database
-    const needsSeeding = await dbStorage.shouldSeedDatabase();
+    // Check database table counts
+    const usersCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const contractsCount = await db.select({ count: sql<number>`count(*)` }).from(contracts);
+    const invoicesCount = await db.select({ count: sql<number>`count(*)` }).from(invoices);
+    const commissionsCount = await db.select({ count: sql<number>`count(*)` }).from(commissions);
     
-    if (needsSeeding) {
+    console.log('Database tables status:', {
+      users: usersCount[0].count.toString(),
+      contracts: contractsCount[0].count.toString(),
+      invoices: invoicesCount[0].count.toString(),
+      commissions: commissionsCount[0].count.toString()
+    });
+    
+    // Check if we need to seed the database (no users)
+    if (usersCount[0].count === 0) {
       console.log("Database needs seeding, running seed script...");
       // Run database seeding script to create initial data
-      const { spawn } = require('child_process');
       const seedProcess = spawn('node', ['-r', 'tsx', 'server/seed-db.ts']);
       
       seedProcess.stdout.on('data', (data: any) => {
@@ -65,45 +77,26 @@ app.use((req, res, next) => {
       seedProcess.on('close', (code: number) => {
         console.log(`Seed script exited with code ${code}`);
       });
+    } 
+    // Check if we have users but need to seed contracts
+    else if (contractsCount[0].count === 0) {
+      console.log("No contracts found, seeding contracts, invoices, and commissions...");
+      // Run contracts seeding script to create just the contracts/invoices/commissions
+      const seedProcess = spawn('node', ['-r', 'tsx', 'server/seed-contracts.ts']);
+      
+      seedProcess.stdout.on('data', (data: any) => {
+        console.log(`Contracts seed script: ${data}`);
+      });
+      
+      seedProcess.stderr.on('data', (data: any) => {
+        console.error(`Contracts seed script error: ${data}`);
+      });
+      
+      seedProcess.on('close', (code: number) => {
+        console.log(`Contracts seed script exited with code ${code}`);
+      });
     } else {
       console.log("Database already has data, skipping seeding");
-      
-      // This is a fallback - if we have users but no contracts/invoices/commissions
-      // Use a separate method to check and seed contracts if needed
-      const checkAndSeedContracts = async () => {
-        try {
-          // Import needed modules
-          const { eq } = await import('drizzle-orm');
-          const { sql } = await import('drizzle-orm');
-          const { contracts } = await import('@shared/schema');
-          const { db } = await import('./db');
-          
-          const contractsCheck = await db.select({ count: sql<number>`count(*)` }).from(contracts);
-          if (contractsCheck[0].count === 0) {
-            console.log("No contracts found, seeding contracts, invoices, and commissions...");
-            // Run contracts seeding script to create just the contracts/invoices/commissions
-            const { spawn } = require('child_process');
-            const seedProcess = spawn('node', ['-r', 'tsx', 'server/seed-contracts.ts']);
-            
-            seedProcess.stdout.on('data', (data: any) => {
-              console.log(`Contracts seed script: ${data}`);
-            });
-            
-            seedProcess.stderr.on('data', (data: any) => {
-              console.error(`Contracts seed script error: ${data}`);
-            });
-            
-            seedProcess.on('close', (code: number) => {
-              console.log(`Contracts seed script exited with code ${code}`);
-            });
-          }
-        } catch (error) {
-          console.error("Error checking contracts:", error);
-        }
-      };
-      
-      // Execute the check
-      checkAndSeedContracts();
     }
   } catch (error) {
     console.error("CRITICAL ERROR: Failed to initialize database storage:", error);

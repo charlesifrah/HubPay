@@ -1,7 +1,7 @@
 import { db } from './db';
 import { commissions, invoices, contracts } from '@shared/schema';
 import { Response, Request, NextFunction } from 'express';
-import { storage } from './storage';
+import { getStorage } from './storage';
 
 /**
  * Clears all contracts, invoices, and commissions from the database.
@@ -9,6 +9,9 @@ import { storage } from './storage';
  */
 export async function clearDatabase(req: Request, res: Response, next: NextFunction) {
   try {
+    // Get the storage instance
+    const storage = getStorage();
+    
     // Get user ID from body and verify admin status
     const userId = req.body.currentUserId || (req as any).user?.id;
     if (!userId) {

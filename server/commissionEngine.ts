@@ -1,5 +1,5 @@
 import { Contract, Invoice, Commission, InsertCommission } from "@shared/schema";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 
 export class CommissionEngine {
   private static instance: CommissionEngine;
@@ -16,7 +16,7 @@ export class CommissionEngine {
   }
 
   public async calculateCommission(invoice: Invoice): Promise<InsertCommission> {
-    const contract = await storage.getContract(invoice.contractId);
+    const contract = await getStorage().getContract(invoice.contractId);
     if (!contract) {
       throw new Error('Contract not found');
     }
@@ -107,7 +107,7 @@ export class CommissionEngine {
   
   private async applyOTECap(aeId: number, newCommission: number): Promise<boolean> {
     // Get YTD commissions for this AE
-    const ytdCommissions = await storage.getYTDCommissionsForAE(aeId);
+    const ytdCommissions = await getStorage().getYTDCommissionsForAE(aeId);
     const currentYtdTotal = ytdCommissions.reduce((sum, commission) => 
       sum + Number(commission.totalCommission), 0);
     

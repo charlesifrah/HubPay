@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { CommissionEngine } from "./commissionEngine";
 import { setupAEManagementRoutes } from "./ae-management";
@@ -34,14 +34,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pendingPayouts = [];
       
       try {
-        totalCommissions = await storage.getTotalCommissions();
+        totalCommissions = await getStorage().getTotalCommissions();
         console.log("Total commissions:", totalCommissions);
       } catch (err) {
         console.error("Error getting total commissions:", err);
       }
       
       try {
-        aeCommissions = await storage.getCommissionsByAE();
+        aeCommissions = await getStorage().getCommissionsByAE();
         console.log("AE commissions:", aeCommissions);
       } catch (err) {
         console.error("Error getting AE commissions:", err);
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all invoices
   app.get("/api/invoices", async (req, res) => {
     try {
-      const invoices = await storage.getInvoicesWithDetails();
+      const invoices = await getStorage().getInvoicesWithDetails();
       res.json(invoices);
     } catch (error) {
       console.error("Error fetching invoices:", error);

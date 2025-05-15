@@ -4,7 +4,7 @@ import { users, invitations, userStatusEnum } from "@shared/schema";
 import { eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { randomBytes } from "crypto";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { hashPassword } from "./auth";
 import { fromZodError } from "zod-validation-error";
 
@@ -55,10 +55,10 @@ export function setupAdminManagementRoutes(app: Express) {
   app.get("/api/admin/administrators", adminOnly, async (req, res) => {
     try {
       // Get all active admin users - using the storage interface
-      const administrators = await storage.getAllUsers();
+      const administrators = await getStorage().getAllUsers();
       
       // Get all pending admin invitations - using the storage interface
-      const pendingInvitations = await storage.getAllInvitations();
+      const pendingInvitations = await getStorage().getAllInvitations();
       
       // Filter administrators to include only admin users
       const adminUsers = administrators.filter(admin => admin.role === 'admin');
@@ -122,7 +122,7 @@ export function setupAdminManagementRoutes(app: Express) {
       const updateData = validationResult.data;
       
       // Check if admin exists using storage interface
-      const existingAdmin = await storage.getUser(userId);
+      const existingAdmin = await getStorage().getUser(userId);
       
       if (!existingAdmin) {
         return res.status(404).json({ message: "Administrator not found" });
@@ -141,7 +141,7 @@ export function setupAdminManagementRoutes(app: Express) {
       
       // Check for email uniqueness if email is being updated
       if (updateData.email !== undefined) {
-        const existingUserWithEmail = await storage.getUserByEmail(updateData.email);
+        const existingUserWithEmail = await getStorage().getUserByEmail(updateData.email);
         
         if (existingUserWithEmail && existingUserWithEmail.id !== userId) {
           return res.status(400).json({ message: "Email is already in use" });

@@ -819,18 +819,33 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Import DatabaseStorage
+// Import DatabaseStorage - we're exclusively using the database storage
 import { DatabaseStorage } from './storage-db';
 
-// Use DatabaseStorage instead of MemStorage for persistence
-// Create an instance of MemStorage for development by default
-let _storage: IStorage = new MemStorage();
+// Create variable to hold our storage instance, but don't initialize yet
+// We'll initialize it asynchronously in the index.ts file
+let _storage: IStorage;
 
-// Export a function to allow changing the storage implementation
-export function setStorage(storageImplementation: IStorage) {
-  _storage = storageImplementation;
-  console.log("Storage implementation switched");
+// Export a function to initialize the storage - we'll use this in index.ts
+export async function initializeStorage(): Promise<IStorage> {
+  try {
+    console.log("Initializing database storage for persistence");
+    _storage = new DatabaseStorage();
+    console.log("Storage initialized with DatabaseStorage");
+    return _storage;
+  } catch (error) {
+    console.error("Failed to initialize database storage:", error);
+    throw error;
+  }
 }
 
-// Export the current storage implementation
-export const storage = _storage;
+// Export a function to access the storage (for backwards compatibility)
+export function getStorage(): IStorage {
+  if (!_storage) {
+    throw new Error("Storage not initialized! Call initializeStorage() first.");
+  }
+  return _storage;
+}
+
+// We now use getStorage() instead of directly accessing storage
+// All storage access should go through getStorage()

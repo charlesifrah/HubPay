@@ -4,7 +4,7 @@ import { users, invitations, userStatusEnum } from "@shared/schema";
 import { eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { randomBytes } from "crypto";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import { hashPassword } from "./auth";
 import { fromZodError } from "zod-validation-error";
 
@@ -62,13 +62,13 @@ export function setupAEManagementRoutes(app: Express) {
   app.get("/api/admin/account-executives", adminOnly, async (req, res) => {
     try {
       // Get all users with role 'ae' using storage interface
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await getStorage().getAllUsers();
       const accountExecutives = allUsers
         .filter(user => user.role === 'ae')
         .sort((a, b) => a.name.localeCompare(b.name));
       
       // Get all pending invitations using storage interface
-      const allInvitations = await storage.getAllInvitations();
+      const allInvitations = await getStorage().getAllInvitations();
       const pendingInvitations = allInvitations.filter(invite => !invite.used);
       
       // Map users to a safer response object (excluding password)
