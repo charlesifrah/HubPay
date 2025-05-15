@@ -137,12 +137,15 @@ export default function AEDashboard() {
                 {oteProgress.percentage.toFixed(2)}%
               </span>
             </div>
-            {/* Custom progress bar implementation */}
+            {/* Custom progress bar implementation with debug */}
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div
                 className="bg-primary-600 h-4 rounded-full"
                 style={{ width: `${oteProgress.percentage}%` }}
               ></div>
+            </div>
+            <div className="text-xs text-red-500 mt-1">
+              Debug: width={oteProgress.percentage}%, type={typeof oteProgress.percentage}, raw={JSON.stringify(oteProgress)}
             </div>
             <div className="mt-4 text-sm text-gray-500">
               <p>
