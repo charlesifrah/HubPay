@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { ContractWithAE } from "@shared/schema";
@@ -15,21 +15,89 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileSpreadsheet, 
+  FileSpreadsheet,
+  Pencil,
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout/layout";
 import { UploadContractModal } from "@/components/modals/upload-contract-modal";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ContractsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState<number | null>(null);
+  const [contractsWithInvoices, setContractsWithInvoices] = useState<Record<number, boolean>>({});
 
   const { data: contracts, isLoading, error } = useQuery<ContractWithAE[]>({
     queryKey: ["/api/contracts"],
     enabled: !!user,
   });
+  
+  // Check which contracts have invoices and update state on completion
+  const { data: contractsInvoiceData } = useQuery<Record<number, boolean>>({
+    queryKey: ["/api/contracts/with-invoices"],
+    enabled: !!contracts && contracts.length > 0,
+  });
+  
+  // Update state when contract invoice data changes
+  useEffect(() => {
+    if (contractsInvoiceData) {
+      setContractsWithInvoices(contractsInvoiceData);
+    }
+  }, [contractsInvoiceData]);
+  
+  // Delete contract mutation
+  const { mutate: deleteContract, isPending: isDeleting } = useMutation({
+    mutationFn: async (contractId: number) => {
+      const response = await apiRequest("DELETE", `/api/contracts/${contractId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+      toast({
+        title: "Contract deleted",
+        description: "The contract has been successfully deleted.",
+        variant: "default",
+      });
+      setIsDeleteDialogOpen(false);
+      setContractToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete contract. " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleDeleteClick = (contractId: number) => {
+    setContractToDelete(contractId);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (contractToDelete) {
+      deleteContract(contractToDelete);
+    }
+  };
 
   const getContractTypeColor = (type: string) => {
     switch (type) {
@@ -104,6 +172,7 @@ export default function ContractsPage() {
                   <TableHead>Length</TableHead>
                   <TableHead>Terms</TableHead>
                   <TableHead>Created</TableHead>
+                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
