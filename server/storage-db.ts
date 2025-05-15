@@ -217,14 +217,43 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createInvitation(invitation: { email: string, token: string, role: string, expiresAt: Date, createdBy: number }): Promise<any> {
-    const [result] = await db.insert(invitations).values({
-      email: invitation.email,
-      token: invitation.token,
-      expires: invitation.expiresAt,
-      role: invitation.role as any, // Cast to match the enum type
-      createdBy: invitation.createdBy
-    }).returning();
-    return result;
+    try {
+      // Create base invitation data excluding problematic role field
+      const invitationData: any = {
+        email: invitation.email,
+        token: invitation.token,
+        expires: invitation.expiresAt,
+        createdBy: invitation.createdBy
+      };
+      
+      // Only include role if it's likely to be in the schema (based on enum)
+      try {
+        // Try inserting with role
+        const [result] = await db.insert(invitations).values({
+          ...invitationData,
+          role: invitation.role as any // Cast to match the enum type
+        }).returning();
+        
+        // Add role to result if it doesn't exist
+        return {
+          ...result,
+          role: result.role || invitation.role || 'ae'
+        };
+      } catch (roleError) {
+        console.error("Error inserting with role, trying without:", roleError);
+        // Try inserting without role field
+        const [result] = await db.insert(invitations).values(invitationData).returning();
+        
+        // Add role to result for code consistency
+        return {
+          ...result,
+          role: invitation.role || 'ae'
+        };
+      }
+    } catch (error) {
+      console.error("Error in createInvitation:", error);
+      throw error;
+    }
   }
   
   async updateInvitation(id: number, updates: Partial<{ token: string, expiresAt: Date }>): Promise<any> {

@@ -249,16 +249,14 @@ export function setupAEManagementRoutes(app: Express) {
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + 72); // 72-hour expiration
       
-      const newInvitations = await db.insert(invitations)
-        .values({
-          email,
-          token: inviteToken,
-          expires: expirationDate,
-          used: false,
-          role: 'ae', // Set role to AE explicitly
-          createdBy: adminId
-        })
-        .returning();
+      // Use storage interface instead of direct DB access
+      const newInvitation = await getStorage().createInvitation({
+        email,
+        token: inviteToken,
+        role: 'ae', // This may be handled differently depending on schema
+        expiresAt: expirationDate,
+        createdBy: adminId
+      });
       
       // TODO: In a real application, send an email with the invitation link
       const inviteLink = `${req.protocol}://${req.get('host')}/register-with-invitation?token=${inviteToken}`;
