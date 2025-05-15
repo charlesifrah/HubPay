@@ -101,11 +101,37 @@ export class DatabaseStorage implements IStorage {
     });
   }
   
-  // Check if the database needs to be seeded (no users exist)
+  // Check if the database needs to be seeded
   async shouldSeedDatabase(): Promise<boolean> {
     try {
+      // Check if users exist
       const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
-      return userCount[0].count === 0;
+      
+      // If no users exist, we definitely need to seed
+      if (userCount[0].count === 0) {
+        return true;
+      }
+      
+      // Check if contracts, invoices, and commissions exist
+      const contractCount = await db.select({ count: sql<number>`count(*)` }).from(contracts);
+      const invoiceCount = await db.select({ count: sql<number>`count(*)` }).from(invoices);
+      const commissionCount = await db.select({ count: sql<number>`count(*)` }).from(commissions);
+      
+      // If any of these tables are empty, we should seed
+      console.log("Database tables status:", {
+        users: userCount[0].count,
+        contracts: contractCount[0].count,
+        invoices: invoiceCount[0].count,
+        commissions: commissionCount[0].count
+      });
+      
+      // Use force=true in the URL to force reseeding
+      const shouldSeed = 
+        contractCount[0].count === 0 || 
+        invoiceCount[0].count === 0 || 
+        commissionCount[0].count === 0;
+      
+      return shouldSeed;
     } catch (error) {
       console.error("Error checking if database needs seeding:", error);
       // Return true to ensure tables are created

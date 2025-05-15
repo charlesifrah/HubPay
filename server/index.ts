@@ -67,6 +67,43 @@ app.use((req, res, next) => {
       });
     } else {
       console.log("Database already has data, skipping seeding");
+      
+      // This is a fallback - if we have users but no contracts/invoices/commissions
+      // Use a separate method to check and seed contracts if needed
+      const checkAndSeedContracts = async () => {
+        try {
+          // Import needed modules
+          const { eq } = await import('drizzle-orm');
+          const { sql } = await import('drizzle-orm');
+          const { contracts } = await import('@shared/schema');
+          const { db } = await import('./db');
+          
+          const contractsCheck = await db.select({ count: sql<number>`count(*)` }).from(contracts);
+          if (contractsCheck[0].count === 0) {
+            console.log("No contracts found, seeding contracts, invoices, and commissions...");
+            // Run contracts seeding script to create just the contracts/invoices/commissions
+            const { spawn } = require('child_process');
+            const seedProcess = spawn('node', ['-r', 'tsx', 'server/seed-contracts.ts']);
+            
+            seedProcess.stdout.on('data', (data: any) => {
+              console.log(`Contracts seed script: ${data}`);
+            });
+            
+            seedProcess.stderr.on('data', (data: any) => {
+              console.error(`Contracts seed script error: ${data}`);
+            });
+            
+            seedProcess.on('close', (code: number) => {
+              console.log(`Contracts seed script exited with code ${code}`);
+            });
+          }
+        } catch (error) {
+          console.error("Error checking contracts:", error);
+        }
+      };
+      
+      // Execute the check
+      checkAndSeedContracts();
     }
   } catch (error) {
     console.error("CRITICAL ERROR: Failed to initialize database storage:", error);
