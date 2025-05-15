@@ -185,13 +185,35 @@ export class DatabaseStorage implements IStorage {
   
   // Invitation operations
   async getInvitation(id: number): Promise<any> {
-    const [invitation] = await db.select().from(invitations).where(eq(invitations.id, id));
-    return invitation;
+    try {
+      const [invitation] = await db.select().from(invitations).where(eq(invitations.id, id));
+      if (invitation) {
+        return {
+          ...invitation,
+          role: invitation.role || 'ae' // Provide default if missing
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error in getInvitation:", error);
+      return null;
+    }
   }
   
   async getInvitationByEmail(email: string): Promise<any> {
-    const [invitation] = await db.select().from(invitations).where(eq(invitations.email, email));
-    return invitation;
+    try {
+      const [invitation] = await db.select().from(invitations).where(eq(invitations.email, email));
+      if (invitation) {
+        return {
+          ...invitation,
+          role: invitation.role || 'ae' // Provide default if missing
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error in getInvitationByEmail:", error);
+      return null;
+    }
   }
   
   async createInvitation(invitation: { email: string, token: string, role: string, expiresAt: Date, createdBy: number }): Promise<any> {
@@ -229,7 +251,18 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllInvitations(): Promise<any[]> {
-    return db.select().from(invitations);
+    try {
+      const results = await db.select().from(invitations);
+      // Add default role if missing
+      return results.map(invitation => ({
+        ...invitation,
+        role: invitation.role || 'ae' // Provide default if missing
+      }));
+    } catch (error) {
+      console.error("Error in getAllInvitations:", error);
+      // Return empty array on error to avoid breaking UI
+      return [];
+    }
   }
 
   // Contract operations
