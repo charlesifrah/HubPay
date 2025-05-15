@@ -13,8 +13,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 import {
   DollarSign,
   ListChecks,
@@ -42,6 +44,24 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const [clearDatabaseDialogOpen, setClearDatabaseDialogOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const { toast } = useToast();
+  
+  // Define dashboard data type
+  interface DashboardData {
+    totalCommissions: { total: string, count: number };
+    aeCommissions: Array<{ aeId: number, aeName: string, total: string, count: number, oteProgress: number }>;
+    recentUploads: Array<any>;
+    pendingPayoutsCount: number;
+    activeAECount: number;
+  }
+  
+  // Query to get dashboard data including pending approvals
+  const { data: dashboardData } = useQuery<DashboardData>({
+    queryKey: ['/api/admin/dashboard'],
+    enabled: !!user && user.role === 'admin',
+  });
+  
+  // Get pending payouts count from dashboard data
+  const pendingApprovals = dashboardData?.pendingPayoutsCount || 0;
 
   const isActive = (path: string) => {
     return location === path;
@@ -96,6 +116,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Approve Payouts",
       href: "/admin/payout-approval",
       icon: <ListChecks className="mr-3 h-5 w-5" />,
+      badge: pendingApprovals && pendingApprovals > 0 ? pendingApprovals : null,
     },
     {
       title: "View Payouts",
@@ -137,8 +158,16 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
     },
   ];
 
+  // Define type for sidebar links
+  interface SidebarLink {
+    title: string;
+    href: string;
+    icon: React.ReactElement;
+    badge?: number | null;
+  }
+  
   // Create organized link arrays for display
-  const links = isAdmin ? [
+  const links: SidebarLink[] = isAdmin ? [
     ...adminDashboardLinks,
     ...adminManagementLinks,
     ...adminContractLinks,
@@ -222,7 +251,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         )}
 
         <nav className="flex-1 space-y-1">
-          {links.map((link) => (
+          {links.map((link: SidebarLink) => (
             <button
               key={link.href}
               onClick={() => {
@@ -244,7 +273,12 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                   isActive(link.href) ? "text-primary-500" : "text-gray-500"
                 ),
               })}
-              {link.title}
+              <span className="flex-1">{link.title}</span>
+              {link.badge !== null && link.badge !== undefined && link.badge > 0 && (
+                <Badge className="ml-2 bg-red-500 text-white hover:bg-red-600" variant="secondary">
+                  {link.badge}
+                </Badge>
+              )}
             </button>
           ))}
         </nav>
