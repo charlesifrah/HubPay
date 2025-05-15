@@ -408,6 +408,23 @@ export class DatabaseStorage implements IStorage {
       contractAEId: contractAEId || 0
     }));
   }
+  
+  // Get invoices for a specific contract
+  async getInvoicesForContract(contractId: number): Promise<Invoice[]> {
+    const result = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.contractId, contractId));
+    
+    return result;
+  }
+  
+  // Delete a contract
+  async deleteContract(id: number): Promise<void> {
+    await db
+      .delete(contracts)
+      .where(eq(contracts.id, id));
+  }
 
   // Commission operations
   async createCommission(commission: InsertCommission): Promise<Commission> {

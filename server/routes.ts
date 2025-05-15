@@ -21,6 +21,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Database management API endpoint
   app.post("/api/admin/clear-database", clearDatabase);
+  
+  // Get contracts with invoices
+  app.get("/api/contracts/with-invoices", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+      
+      // Get all contracts
+      const contracts = await getStorage().getAllContracts();
+      
+      // Get all invoices
+      const invoices = await getStorage().getInvoicesWithDetails();
+      
+      // Create a map of contract IDs to boolean (has invoices or not)
+      const contractInvoiceMap: Record<number, boolean> = {};
+      
+      // Initialize all contracts as having no invoices
+      contracts.forEach(contract => {
+        contractInvoiceMap[contract.id] = false;
+      });
+      
+      // Mark contracts that have invoices
+      invoices.forEach(invoice => {
+        if (invoice.contractId) {
+          contractInvoiceMap[invoice.contractId] = true;
+        }
+      });
+      
+      res.json(contractInvoiceMap);
+    } catch (error) {
+      console.error("Error getting contracts with invoices:", error);
+      res.status(500).json({ message: "Error checking contracts for invoices" });
+    }
+  });
+  
+  // Delete a contract (only if it has no invoices)
+  app.delete("/api/contracts/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || req.user.role !== 'admin') {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+      
+      const contractId = parseInt(req.params.id);
+      
+      // Check if contract exists
+      const contract = await getStorage().getContract(contractId);
+      if (!contract) {
+        return res.status(404).json({ message: "Contract not found" });
+      }
+      
+      // Check if contract has invoices
+      const invoices = await getStorage().getInvoicesForContract(contractId);
+      if (invoices && invoices.length > 0) {
+        return res.status(400).json({ message: "Cannot delete contract with invoices" });
+      }
+      
+      // Delete the contract
+      await getStorage().deleteContract(contractId);
+      
+      res.json({ message: "Contract deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting contract:", error);
+      res.status(500).json({ message: "Error deleting contract" });
+    }
+  });
 
   // Admin Dashboard Overview
   app.get("/api/admin/dashboard", async (req, res) => {

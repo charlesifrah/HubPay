@@ -176,29 +176,87 @@ export default function ContractsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => (
-                  <TableRow key={contract.id}>
-                    <TableCell className="font-medium">
-                      {contract.clientName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
-                        {contract.contractType.charAt(0).toUpperCase() + contract.contractType.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{contract.aeName}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
-                    <TableCell>{contract.contractLength} {contract.contractLength === 1 ? 'year' : 'years'}</TableCell>
-                    <TableCell>{contract.paymentTerms}</TableCell>
-                    <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
+                {contracts.map((contract) => {
+                  const hasInvoices = contractsInvoiceData && contractsInvoiceData[contract.id] === true;
+                  
+                  return (
+                    <TableRow key={contract.id}>
+                      <TableCell className="font-medium">
+                        {contract.clientName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={getContractTypeColor(contract.contractType)}>
+                          {contract.contractType.charAt(0).toUpperCase() + contract.contractType.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{contract.aeName}</TableCell>
+                      <TableCell>{formatCurrency(parseFloat(contract.contractValue))}</TableCell>
+                      <TableCell>{formatCurrency(parseFloat(contract.acv))}</TableCell>
+                      <TableCell>{contract.contractLength} {contract.contractLength === 1 ? 'year' : 'years'}</TableCell>
+                      <TableCell>{contract.paymentTerms}</TableCell>
+                      <TableCell>{contract.createdAt ? formatDate(new Date(contract.createdAt)) : 'N/A'}</TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8"
+                              disabled={hasInvoices}
+                              onClick={() => alert('Edit functionality coming soon')}
+                              title={hasInvoices ? "Cannot edit contract with invoices" : "Edit contract"}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              disabled={hasInvoices}
+                              onClick={() => handleDeleteClick(contract.id)}
+                              title={hasInvoices ? "Cannot delete contract with invoices" : "Delete contract"}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         </div>
       )}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this contract?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the contract.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600 focus:bg-red-600"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
