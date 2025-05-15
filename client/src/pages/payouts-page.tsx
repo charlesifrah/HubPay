@@ -246,12 +246,7 @@ export default function PayoutsPage() {
       <Dialog open={!!viewDetails} onOpenChange={(open) => !open && setViewDetails(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex justify-between items-center">
-              <span>Payout Details</span>
-              <Button variant="ghost" size="sm" onClick={() => setViewDetails(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
+            <DialogTitle>Payout Details</DialogTitle>
             <DialogDescription>
               {viewDetails?.contractClientName} - ID: {viewDetails?.id}
             </DialogDescription>
