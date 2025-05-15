@@ -159,7 +159,7 @@ export function setupAuth(app: Express) {
     }
 
     // Get user from database and attach to request
-    const user = await storage.getUser(payload.id);
+    const user = await getStorage().getUser(payload.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -186,7 +186,7 @@ export function setupAuth(app: Express) {
     }
 
     // Get user from database and attach to request
-    const user = await storage.getUser(payload.id);
+    const user = await getStorage().getUser(payload.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
