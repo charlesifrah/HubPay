@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,10 +19,12 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout/layout";
+import { UploadContractModal } from "@/components/modals/upload-contract-modal";
 
 export default function ContractsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: contracts, isLoading, error } = useQuery<ContractWithAE[]>({
     queryKey: ["/api/contracts"],
@@ -42,7 +45,6 @@ export default function ContractsPage() {
   };
 
   const isAdmin = user?.role === "admin";
-  const uploadRoute = isAdmin ? "/admin/upload-contract" : null;
 
   return (
     <Layout title="Contracts">
@@ -52,12 +54,20 @@ export default function ContractsPage() {
           <h2 className="text-2xl font-bold">Contracts</h2>
         </div>
         
-        {isAdmin && uploadRoute && (
-          <Button onClick={() => setLocation(uploadRoute)}>
+        {isAdmin && (
+          <Button onClick={() => setIsModalOpen(true)}>
             Upload New Contract
           </Button>
         )}
       </div>
+      
+      {/* Contract Upload Modal */}
+      {isAdmin && (
+        <UploadContractModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
       
       <Separator className="mb-6" />
 
@@ -74,8 +84,8 @@ export default function ContractsPage() {
           <FileSpreadsheet className="h-10 w-10 text-gray-400 mx-auto mb-3" />
           <h3 className="text-lg font-medium text-gray-600">No Contracts Found</h3>
           <p className="text-gray-500 mb-4">There are no contracts in the system yet.</p>
-          {isAdmin && uploadRoute && (
-            <Button onClick={() => setLocation(uploadRoute)} variant="outline">
+          {isAdmin && (
+            <Button onClick={() => setIsModalOpen(true)} variant="outline">
               Upload Your First Contract
             </Button>
           )}
