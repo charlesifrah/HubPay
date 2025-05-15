@@ -131,10 +131,12 @@ export default function PayoutsPage() {
       
       <Card className="mt-4">
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             <div>
               <CardTitle>Approved Payouts</CardTitle>
-              <CardDescription>View and manage all approved commission payouts</CardDescription>
+              <CardDescription className="mt-1.5">
+                View and manage all approved commission payouts
+              </CardDescription>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline" onClick={exportCSV}>
