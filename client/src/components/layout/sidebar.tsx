@@ -207,7 +207,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
     )}>
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 bg-primary-500">
         <button 
-          onClick={() => window.location.href = isAdmin ? "/admin/dashboard" : "/ae/dashboard"}
+          onClick={() => {
+            const route = isAdmin ? "/admin/dashboard" : "/ae/dashboard";
+            window.history.pushState({}, "", route);
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }}
           className="bg-transparent border-0 p-0"
         >
           <span className="text-xl font-semibold text-white cursor-pointer">Commission App</span>
@@ -235,7 +239,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
               key={link.href}
               onClick={() => {
                 if (mobile && onClose) onClose();
-                window.location.href = link.href;
+                // Use Wouter's navigation instead of direct window.location changes
+                window.history.pushState({}, "", link.href);
+                window.dispatchEvent(new PopStateEvent("popstate"));
               }}
               className={cn(
                 "flex items-center px-4 py-2 text-sm font-medium rounded-md group w-full text-left",
@@ -302,7 +308,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         <button 
           onClick={() => {
             if (mobile && onClose) onClose();
-            window.location.href = "/profile";
+            // Use Wouter's navigation instead of direct window.location changes
+            window.history.pushState({}, "", "/profile");
+            window.dispatchEvent(new PopStateEvent("popstate"));
           }}
           className={cn(
             "flex items-center px-4 py-2 text-sm font-medium rounded-md group w-full",
