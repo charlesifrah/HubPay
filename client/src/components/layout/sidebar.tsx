@@ -19,8 +19,6 @@ import {
   DollarSign,
   ListChecks,
   BarChart3,
-  Upload,
-  FileText,
   LogOut,
   PieChart,
   User,
@@ -81,11 +79,6 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       href: "/contracts",
       icon: <FileSpreadsheet className="mr-3 h-5 w-5" />,
     },
-    {
-      title: "Upload Contract",
-      href: "/admin/upload-contract",
-      icon: <Upload className="mr-3 h-5 w-5" />,
-    },
   ];
   
   // Invoice related links for Admins
@@ -94,11 +87,6 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "View Invoices",
       href: "/invoices",
       icon: <FileBox className="mr-3 h-5 w-5" />,
-    },
-    {
-      title: "Upload Invoice",
-      href: "/admin/upload-invoice",
-      icon: <FileText className="mr-3 h-5 w-5" />,
     },
   ];
   
