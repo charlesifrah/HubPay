@@ -32,6 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let aeCommissions = [];
       let recentUploads = [];
       let pendingPayouts = [];
+      let activeAECount = 0;
       
       try {
         totalCommissions = await getStorage().getTotalCommissions();
@@ -45,6 +46,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("AE commissions:", aeCommissions);
       } catch (err) {
         console.error("Error getting AE commissions:", err);
+      }
+      
+      try {
+        // Get all active AEs regardless of commissions
+        const allAEs = await getStorage().getAllAEs();
+        activeAECount = allAEs.filter(ae => ae.status === 'active').length;
+        console.log("Active AE count:", activeAECount);
+      } catch (err) {
+        console.error("Error getting active AE count:", err);
       }
       
       try {
@@ -65,7 +75,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalCommissions,
         aeCommissions,
         recentUploads,
-        pendingPayoutsCount: pendingPayouts.length
+        pendingPayoutsCount: pendingPayouts.length,
+        activeAECount
       });
     } catch (error) {
       console.error("Admin dashboard error:", error);

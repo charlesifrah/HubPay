@@ -68,7 +68,7 @@ export default function AdminDashboard() {
             title="Active AEs"
             value={isLoading 
               ? "Loading..." 
-              : topAEs.length
+              : data?.activeAECount || 0
             }
             icon={<Users className="h-5 w-5" />}
             iconBgColor="bg-green-100"
