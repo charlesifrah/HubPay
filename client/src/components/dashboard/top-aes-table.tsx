@@ -77,8 +77,9 @@ export function TopAEsTable({ aes }: TopAEsTableProps) {
                     value={ae.oteProgress} 
                     height="h-2.5" 
                     showLabel={false}
+                    percentage={ae.oteProgress} // Explicitly pass the percentage
                   />
-                  <div className="text-xs text-gray-500 mt-1">{ae.oteProgress}% to $1M</div>
+                  <div className="text-xs text-gray-500 mt-1">{ae.oteProgress.toFixed(2)}% to $1M</div>
                 </TableCell>
               </TableRow>
             ))

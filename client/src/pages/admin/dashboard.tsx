@@ -25,7 +25,7 @@ export default function AdminDashboard() {
         totalCommission: new Intl.NumberFormat('en-US').format(Number(ae.total)),
         totalDeals: ae.count,
         avgDealValue: new Intl.NumberFormat('en-US').format(Number(ae.total) / ae.count),
-        oteProgress: ae.oteProgress
+        oteProgress: parseFloat(ae.oteProgress.toFixed(2)) // Format to 2 decimal places
       }))
     : [];
 
