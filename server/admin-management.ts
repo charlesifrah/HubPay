@@ -149,7 +149,7 @@ export function setupAdminManagementRoutes(app: Express) {
       }
       
       // Update the admin using storage interface
-      const updatedAdmin = await storage.updateUser(userId, updates);
+      const updatedAdmin = await getStorage().updateUser(userId, updates);
       
       // Return the updated admin (excluding password)
       res.status(200).json({
@@ -172,7 +172,7 @@ export function setupAdminManagementRoutes(app: Express) {
       const userId = parseInt(id);
       
       // Verify user exists and is an Admin using storage interface
-      const existingUser = await storage.getUser(userId);
+      const existingUser = await getStorage().getUser(userId);
       
       if (!existingUser) {
         return res.status(404).json({ message: "Administrator not found" });
@@ -188,7 +188,7 @@ export function setupAdminManagementRoutes(app: Express) {
       }
       
       // Delete the user using storage interface
-      await storage.deleteUser(userId);
+      await getStorage().deleteUser(userId);
       
       res.status(200).json({ message: "Administrator deleted successfully" });
     } catch (error) {
@@ -213,17 +213,17 @@ export function setupAdminManagementRoutes(app: Express) {
       const { email } = validationResult.data;
       
       // Check if email is already registered using storage interface
-      const existingUser = await storage.getUserByEmail(email);
+      const existingUser = await getStorage().getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ message: "Email is already registered" });
       }
       
       // Check if there's an existing invitation using storage interface
-      const existingInvite = await storage.getInvitationByEmail(email);
+      const existingInvite = await getStorage().getInvitationByEmail(email);
       
       // Delete existing invitation if it exists using storage interface
       if (existingInvite) {
-        await storage.deleteInvitation(existingInvite.id);
+        await getStorage().deleteInvitation(existingInvite.id);
       }
       
       // Get admin ID from authenticated user
@@ -234,7 +234,7 @@ export function setupAdminManagementRoutes(app: Express) {
       const expirationDate = new Date();
       expirationDate.setHours(expirationDate.getHours() + 72); // 72-hour expiration
       
-      const newInvitation = await storage.createInvitation({
+      const newInvitation = await getStorage().createInvitation({
         email,
         token: inviteToken,
         role: 'admin', // Set role to admin explicitly
@@ -272,7 +272,7 @@ export function setupAdminManagementRoutes(app: Express) {
       }
       
       // Check if admin exists using storage interface
-      const existingAdmin = await storage.getUser(userId);
+      const existingAdmin = await getStorage().getUser(userId);
       
       if (!existingAdmin) {
         return res.status(404).json({ message: "Administrator not found" });
@@ -289,7 +289,7 @@ export function setupAdminManagementRoutes(app: Express) {
       const hashedPassword = await hashPassword(tempPassword);
       
       // Update the user's password using storage interface
-      await storage.updateUser(userId, {
+      await getStorage().updateUser(userId, {
         password: hashedPassword,
       });
       
@@ -312,7 +312,7 @@ export function setupAdminManagementRoutes(app: Express) {
       const invitationId = parseInt(id);
       
       // Check if invitation exists using storage interface
-      const existingInvitation = await storage.getInvitation(invitationId);
+      const existingInvitation = await getStorage().getInvitation(invitationId);
       
       if (!existingInvitation) {
         return res.status(404).json({ message: "Invitation not found" });
@@ -323,7 +323,7 @@ export function setupAdminManagementRoutes(app: Express) {
       }
       
       // Delete the invitation using storage interface
-      await storage.deleteInvitation(invitationId);
+      await getStorage().deleteInvitation(invitationId);
       
       res.status(200).json({ message: "Invitation revoked successfully" });
     } catch (error) {

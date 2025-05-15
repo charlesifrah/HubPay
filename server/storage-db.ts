@@ -156,7 +156,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllAEs(): Promise<User[]> {
-    return db.select().from(users).where(eq(users.role, 'ae'));
+    // Get all users and filter for AEs to avoid SQL enum type issues
+    const allUsers = await db.select().from(users);
+    return allUsers.filter(user => user.role === 'ae');
   }
 
   async getAllUsers(): Promise<User[]> {
