@@ -78,8 +78,11 @@ export function TopAEsTable({ aes }: TopAEsTableProps) {
                     <tbody>
                       <tr>
                         <td 
-                          className="bg-primary-600 rounded-l-full h-2.5 p-0 m-0"
-                          style={{ width: `${ae.oteProgress}%` }}
+                          className="rounded-l-full h-2.5 p-0 m-0"
+                          style={{ 
+                            width: `${ae.oteProgress}%`,
+                            backgroundColor: '#2563eb', /* Bright blue for better visibility */
+                          }}
                         ></td>
                         <td 
                           className="bg-gray-200 rounded-r-full h-2.5 p-0 m-0"

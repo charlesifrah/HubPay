@@ -142,8 +142,11 @@ export default function AEDashboard() {
               <tbody>
                 <tr>
                   <td 
-                    className="bg-primary-600 rounded-l-full h-4 p-0 m-0"
-                    style={{ width: `${oteProgress.percentage}%` }}
+                    className="rounded-l-full h-4 p-0 m-0"
+                    style={{ 
+                      width: `${oteProgress.percentage}%`,
+                      backgroundColor: '#2563eb', /* Bright blue for better visibility */
+                    }}
                   ></td>
                   <td 
                     className="bg-gray-200 rounded-r-full h-4 p-0 m-0"
