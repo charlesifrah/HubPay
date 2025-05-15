@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   DollarSign,
   ListChecks,
@@ -174,14 +174,20 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       const response = await apiRequest('POST', '/api/admin/clear-database');
       const result = await response.json();
       
+      // Invalidate all queries to refresh the cache with new data from server
+      queryClient.invalidateQueries({ queryKey: ['/api/contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/payouts'] });
+      
+      // Show success toast with deleted counts
       toast({
         title: "Database cleared successfully",
         description: `Deleted ${result.deletedCounts.contracts} contracts, ${result.deletedCounts.invoices} invoices, and ${result.deletedCounts.commissions} commissions.`,
         variant: "default",
       });
       
-      // Refresh the page to update data
-      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
       toast({
         title: "Failed to clear database",
