@@ -1,6 +1,7 @@
 import { db } from './db';
 import { users, contracts, invoices, commissions } from '@shared/schema';
 import { CommissionEngine } from './commissionEngine';
+import { eq } from "drizzle-orm";
 
 async function seedContractsWithExistingUsers() {
   console.log('Seeding contracts with existing users...');
@@ -92,7 +93,7 @@ async function seedInvoicesWithContracts(adminUser: any, contractList: any[]) {
   return [acmeInvoice, appleInvoice];
 }
 
-async function seedCommissions(invoiceList: any[]) {
+async function seedCommissions(invoiceList: any[], contractList: any[]) {
   console.log('Seeding commissions...');
   
   // Check for existing commissions
@@ -102,11 +103,33 @@ async function seedCommissions(invoiceList: any[]) {
     return;
   }
 
-  // For each invoice, calculate and create a commission
-  const commissionEngine = CommissionEngine.getInstance();
-  
+  // For each invoice, create a commission directly
   for (const invoice of invoiceList) {
-    const commissionData = await commissionEngine.calculateCommission(invoice);
+    // Find the matching contract for this invoice
+    const contract = contractList.find(c => c.id === invoice.contractId);
+    
+    if (!contract) {
+      console.error(`Error: Could not find contract ${invoice.contractId} for invoice ${invoice.id}`);
+      continue;
+    }
+    
+    // Calculate base commission (10% of invoice amount)
+    const invoiceAmount = Number(invoice.amount);
+    const baseCommission = invoiceAmount * 0.1;
+    
+    // Create the commission record directly
+    const commissionData = {
+      invoiceId: invoice.id,
+      aeId: contract.aeId,
+      baseCommission: baseCommission.toString(),
+      pilotBonus: "0",
+      multiYearBonus: "0",
+      upfrontBonus: "0",
+      totalCommission: baseCommission.toString(),
+      oteApplied: false,
+      status: 'pending'
+    };
+    
     const [commission] = await db.insert(commissions).values(commissionData).returning();
     console.log(`Created commission ${commission.id} for invoice ${invoice.id}`);
   }
@@ -128,8 +151,8 @@ async function seedAll() {
       const invoiceList = await seedInvoicesWithContracts(adminUser, contractList);
       
       if (invoiceList.length > 0) {
-        // Seed commissions
-        await seedCommissions(invoiceList);
+        // Seed commissions, passing both invoices and contracts
+        await seedCommissions(invoiceList, contractList);
       }
     }
     
@@ -138,9 +161,6 @@ async function seedAll() {
     console.error("Error seeding contracts/invoices/commissions:", error);
   }
 }
-
-// Import the eq operator
-import { eq } from "drizzle-orm";
 
 seedAll()
   .then(() => process.exit(0))
