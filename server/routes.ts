@@ -81,18 +81,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has permission to access this AE's data
       const currentUserId = req.body.currentUserId;
       if (currentUserId !== aeId) {
-        const currentUser = await storage.getUser(currentUserId);
+        const currentUser = await getStorage().getUser(currentUserId);
         if (currentUser?.role !== 'admin') {
           return res.status(403).json({ message: "Not authorized to view this AE's dashboard" });
         }
       }
       
-      const monthlyCommission = await storage.getCurrentMonthCommissionForAE(aeId);
-      const ytdCommission = await storage.getYTDCommissionsForAE(aeId);
-      const pendingApprovals = await storage.getPendingCommissionsForAE(aeId);
-      const totalDeals = await storage.getTotalDealsForAE(aeId);
-      const oteProgress = await storage.getOTEProgressForAE(aeId);
-      const recentDeals = await storage.getRecentDealsForAE(aeId, 5); // Get 5 most recent deals
+      const monthlyCommission = await getStorage().getCurrentMonthCommissionForAE(aeId);
+      const ytdCommission = await getStorage().getYTDCommissionsForAE(aeId);
+      const pendingApprovals = await getStorage().getPendingCommissionsForAE(aeId);
+      const totalDeals = await getStorage().getTotalDealsForAE(aeId);
+      const oteProgress = await getStorage().getOTEProgressForAE(aeId);
+      const recentDeals = await getStorage().getRecentDealsForAE(aeId, 5); // Get 5 most recent deals
       
       res.json({
         monthlyCommission,
@@ -116,14 +116,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed contract data:", contractData);
       
       // Verify AE exists
-      const ae = await storage.getUser(contractData.aeId);
+      const ae = await getStorage().getUser(contractData.aeId);
       if (!ae || ae.role !== 'ae') {
         console.log("Invalid AE:", contractData.aeId, ae);
         return res.status(400).json({ message: "Invalid AE selected" });
       }
       
       // Create contract
-      const contract = await storage.createContract(contractData);
+      const contract = await getStorage().createContract(contractData);
       
       res.status(201).json({
         message: "Contract created successfully",
@@ -152,20 +152,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed invoice data:", invoiceData);
       
       // Verify contract exists
-      const contract = await storage.getContract(invoiceData.contractId);
+      const contract = await getStorage().getContract(invoiceData.contractId);
       if (!contract) {
         return res.status(400).json({ message: "Invalid contract selected" });
       }
       
       // Create invoice
-      const invoice = await storage.createInvoice(invoiceData);
+      const invoice = await getStorage().createInvoice(invoiceData);
       
       // Calculate commission
       const commissionEngine = CommissionEngine.getInstance();
       const commissionData = await commissionEngine.calculateCommission(invoice);
       
       // Save commission
-      const commission = await storage.createCommission(commissionData);
+      const commission = await getStorage().createCommission(commissionData);
       
       res.status(201).json({
         message: "Invoice and commission created successfully",
@@ -195,13 +195,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has permission to access this AE's data
       const currentUserId = req.body.currentUserId;
       if (currentUserId !== aeId) {
-        const currentUser = await storage.getUser(currentUserId);
+        const currentUser = await getStorage().getUser(currentUserId);
         if (currentUser?.role !== 'admin') {
           return res.status(403).json({ message: "Not authorized to view this AE's commissions" });
         }
       }
       
-      const commissions = await storage.getCommissionsForAE(aeId, filterParams);
+      const commissions = await getStorage().getCommissionsForAE(aeId, filterParams);
       
       res.json(commissions);
     } catch (error) {
@@ -216,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aeId: req.query.aeId ? parseInt(req.query.aeId as string) : undefined,
       };
       
-      const pendingCommissions = await storage.getPendingCommissions(filterParams);
+      const pendingCommissions = await getStorage().getPendingCommissions(filterParams);
       
       res.json(pendingCommissions);
     } catch (error) {
@@ -230,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const commissionId = parseInt(req.params.id);
       const adminId = req.body.currentUserId;
       
-      const updatedCommission = await storage.updateCommissionStatus(
+      const updatedCommission = await getStorage().updateCommissionStatus(
         commissionId, 
         'approved', 
         adminId
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Rejection reason is required" });
       }
       
-      const updatedCommission = await storage.updateCommissionStatus(
+      const updatedCommission = await getStorage().updateCommissionStatus(
         commissionId, 
         'rejected', 
         adminId, 
@@ -279,14 +279,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aeId: req.query.aeId ? parseInt(req.query.aeId as string) : undefined,
       };
       
-      const approvedPayouts = await storage.getCommissionsByStatus('approved');
+      const approvedPayouts = await getStorage().getCommissionsByStatus('approved');
       
       // Enhance the commissions with more details
       const payoutsWithDetails = await Promise.all(
         approvedPayouts.map(async (payout) => {
-          const invoice = await storage.getInvoice(payout.invoiceId);
-          const contract = invoice ? await storage.getContract(invoice.contractId) : null;
-          const ae = contract ? await storage.getUser(contract.aeId) : null;
+          const invoice = await getStorage().getInvoice(payout.invoiceId);
+          const contract = invoice ? await getStorage().getContract(invoice.contractId) : null;
+          const ae = contract ? await getStorage().getUser(contract.aeId) : null;
           
           return {
             ...payout,
@@ -295,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             aeName: ae ? ae.name : 'Unknown',
             invoiceAmount: invoice ? invoice.amount : '0',
             approvedByName: payout.approvedBy ? 
-              (await storage.getUser(payout.approvedBy))?.name || 'Unknown Admin' : 'Unknown',
+              (await getStorage().getUser(payout.approvedBy))?.name || 'Unknown Admin' : 'Unknown',
           };
         })
       );
@@ -318,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contractType: req.query.contractType as string | undefined,
       };
       
-      const reportData = await storage.generateReport(filterParams);
+      const reportData = await getStorage().generateReport(filterParams);
       
       res.json(reportData);
     } catch (error) {
@@ -329,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all AEs (for dropdown selections)
   app.get("/api/aes", async (req, res) => {
     try {
-      const aes = await storage.getAllAEs();
+      const aes = await getStorage().getAllAEs();
       res.json(aes);
     } catch (error) {
       res.status(500).json({ message: "Error fetching AEs" });
@@ -339,9 +339,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all contracts
   app.get("/api/contracts", async (req, res) => {
     try {
-      const contracts = await storage.getAllContracts();
+      const contracts = await getStorage().getAllContracts();
       res.json(contracts);
     } catch (error) {
+      console.error("Error fetching contracts:", error);
       res.status(500).json({ message: "Error fetching contracts" });
     }
   });
@@ -378,7 +379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Token verified, user ID:", userData.id);
       
       // Use the user information from the token
-      const user = await storage.getUser(userData.id);
+      const user = await getStorage().getUser(userData.id);
       if (!user) {
         return res.status(401).json({ message: "Unauthorized: User not found" });
       }
@@ -392,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if email already exists but belongs to a different user
       if (email !== user.email) {
-        const existingUser = await storage.getUserByEmail(email);
+        const existingUser = await getStorage().getUserByEmail(email);
         if (existingUser && existingUser.id !== user.id) {
           return res.status(400).json({ message: "Email already in use by another account" });
         }
@@ -400,7 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Actually update the user in the in-memory storage
       // Update user fields directly in storage
-      const userToUpdate = await storage.getUser(userData.id);
+      const userToUpdate = await getStorage().getUser(userData.id);
       if (userToUpdate) {
         userToUpdate.name = name;
         userToUpdate.email = email;
