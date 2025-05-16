@@ -224,23 +224,23 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       mobile && "w-full"
     )}>
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 bg-primary-500">
-        <div className="flex items-center justify-center w-full">
-          <button 
-            onClick={() => {
-              const route = isAdmin ? "/admin/dashboard" : "/ae/dashboard";
-              window.history.pushState({}, "", route);
-              window.dispatchEvent(new PopStateEvent("popstate"));
-            }}
-            className="bg-transparent border-0 p-0 flex items-center justify-center"
-          >
+        <button 
+          onClick={() => {
+            const route = isAdmin ? "/admin/dashboard" : "/ae/dashboard";
+            window.history.pushState({}, "", route);
+            window.dispatchEvent(new PopStateEvent("popstate"));
+          }}
+          className="bg-transparent border-0 p-0 text-center"
+        >
+          <div className="flex flex-col items-center justify-center">
             <img 
               src={HLogo} 
               alt="H Logo" 
-              className="h-12"
+              className="h-8 mb-1"
             />
-            <span className="text-xl font-semibold text-white cursor-pointer ml-3">Commission App</span>
-          </button>
-        </div>
+            <span className="text-sm font-semibold text-white">Commission App</span>
+          </div>
+        </button>
       </div>
 
       <div className="flex flex-col flex-grow p-4 overflow-y-auto">
