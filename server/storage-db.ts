@@ -816,12 +816,17 @@ export class DatabaseStorage implements IStorage {
     };
     
     for (const item of commissionItems) {
-      totalCommission += Number(item.totalCommission);
+      // Only include approved and paid commissions in the total
+      if (item.status === 'approved' || item.status === 'paid') {
+        totalCommission += Number(item.totalCommission);
+      }
       statusCounts[item.status as keyof typeof statusCounts]++;
     }
     
-    const avgCommission = commissionItems.length > 0 
-      ? totalCommission / commissionItems.length 
+    // Calculate total approved and paid commissions for proper average
+    const approvedCount = statusCounts.approved + statusCounts.paid;
+    const avgCommission = approvedCount > 0 
+      ? totalCommission / approvedCount 
       : 0;
     
     return {
