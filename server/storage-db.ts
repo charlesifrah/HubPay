@@ -733,114 +733,161 @@ export class DatabaseStorage implements IStorage {
     maxValue?: number,
     contractType?: string
   }): Promise<any> {
-    // First, get the exact commission data from the dashboard
-    const totalCommissionsData = await this.getTotalCommissions();
-    const aeCommissionsData = await this.getCommissionsByAE();
-    
-    // Prepare a structure for the report data
-    const reportData = {
-      commissions: [],
-      summary: {
-        totalCommission: totalCommissionsData.total,
-        totalDeals: Number(totalCommissionsData.count),
-        avgCommission: (Number(totalCommissionsData.count) > 0 ? 
-                        Number(totalCommissionsData.total) / Number(totalCommissionsData.count) : 
-                        0).toFixed(2),
-        byStatus: {
-          pending: 0,
-          approved: Number(totalCommissionsData.count),
-          rejected: 0,
-          paid: 0
+    try {
+      // Step 1: Get all commissions that are approved or paid - base query
+      const whereConditions = [
+        sql`(${commissions.status} = 'approved' OR ${commissions.status} = 'paid')`
+      ];
+      
+      // Step 2: Apply all filters from the request
+      if (filters?.startDate) {
+        const startDate = new Date(filters.startDate);
+        whereConditions.push(gte(commissions.createdAt, startDate));
+      }
+      
+      if (filters?.endDate) {
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        whereConditions.push(lte(commissions.createdAt, endDate));
+      }
+      
+      if (filters?.aeId) {
+        whereConditions.push(eq(commissions.aeId, filters.aeId));
+      }
+      
+      // Step 3: Execute the query to get all data
+      const rawData = await db
+        .select({
+          commission: commissions,
+          ae: users,
+          invoice: invoices,
+          contract: contracts
+        })
+        .from(commissions)
+        .leftJoin(users, eq(commissions.aeId, users.id))
+        .leftJoin(invoices, eq(commissions.invoiceId, invoices.id))
+        .leftJoin(contracts, eq(invoices.contractId, contracts.id))
+        .where(and(...whereConditions));
+        
+      // Step 4: Apply remaining filters in memory
+      let filteredData = [...rawData];
+      
+      if (filters?.contractType) {
+        filteredData = filteredData.filter(
+          r => r.contract && r.contract.contractType === filters.contractType
+        );
+      }
+      
+      if (filters?.minValue !== undefined) {
+        filteredData = filteredData.filter(
+          r => r.invoice && Number(r.invoice.amount) >= (filters.minValue || 0)
+        );
+      }
+      
+      if (filters?.maxValue !== undefined) {
+        filteredData = filteredData.filter(
+          r => r.invoice && Number(r.invoice.amount) <= (filters.maxValue || 0)
+        );
+      }
+      
+      // Step 5: Calculate summary statistics
+      const totalCommission = filteredData.reduce(
+        (sum, item) => sum + Number(item.commission.totalCommission), 
+        0
+      );
+      
+      const commissionCount = filteredData.length;
+      const avgCommission = commissionCount > 0 ? totalCommission / commissionCount : 0;
+      
+      // Step 6: Count status distribution
+      const statusCounts = {
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+        paid: 0
+      };
+      
+      filteredData.forEach(item => {
+        const status = item.commission.status as keyof typeof statusCounts;
+        statusCounts[status]++;
+      });
+      
+      // Step 7: Group by AE for the table
+      const aeGroups = new Map<number, {
+        aeId: number;
+        aeName: string;
+        totalCommission: number;
+        deals: number;
+      }>();
+      
+      for (const item of filteredData) {
+        const aeId = item.commission.aeId;
+        const aeName = item.ae?.name || 'Unknown AE';
+        
+        if (!aeGroups.has(aeId)) {
+          aeGroups.set(aeId, {
+            aeId,
+            aeName,
+            totalCommission: 0,
+            deals: 0
+          });
         }
-      },
-      byAE: aeCommissionsData.map(ae => ({
-        aeId: ae.aeId,
-        aeName: ae.aeName,
-        totalCommission: ae.total,
-        deals: Number(ae.count),
-        avgDealSize: (Number(ae.count) > 0 ? 
-                     Number(ae.total) / Number(ae.count) : 
-                     0).toFixed(2),
-        ytdPercentage: ae.oteProgress
-      }))
-    };
-    
-    // Get the detailed commission records only for display
-    // Only use approved/paid commissions - this matches dashboard behavior
-    let conditions = [
-      sql`${commissions.status} = 'approved' OR ${commissions.status} = 'paid'`
-    ];
-    
-    if (filters?.startDate) {
-      const startDate = new Date(filters.startDate);
-      conditions.push(gte(commissions.createdAt, startDate));
+        
+        const aeData = aeGroups.get(aeId)!;
+        aeData.totalCommission += Number(item.commission.totalCommission);
+        aeData.deals += 1;
+      }
+      
+      // Step 8: Calculate OTE progress for each AE
+      const aePromises = Array.from(aeGroups.values()).map(async aeData => {
+        const oteData = await this.getOTEProgressForAE(aeData.aeId);
+        
+        return {
+          aeId: aeData.aeId,
+          aeName: aeData.aeName,
+          totalCommission: aeData.totalCommission.toString(),
+          deals: aeData.deals,
+          avgDealSize: (aeData.deals > 0 ? 
+                       aeData.totalCommission / aeData.deals : 
+                       0).toFixed(2),
+          ytdPercentage: oteData.percentage
+        };
+      });
+      
+      const byAE = await Promise.all(aePromises);
+      
+      // Step 9: Format commission items for detailed view
+      const commissionItems = filteredData.map(({ commission, ae, invoice, contract }) => ({
+        commissionId: commission.id,
+        aeId: commission.aeId,
+        aeName: ae ? ae.name : 'Unknown AE',
+        clientName: contract ? contract.clientName : 'Unknown Client',
+        contractType: contract ? contract.contractType : 'unknown',
+        invoiceAmount: invoice ? invoice.amount.toString() : '0',
+        baseCommission: commission.baseCommission,
+        pilotBonus: commission.pilotBonus,
+        multiYearBonus: commission.multiYearBonus,
+        upfrontBonus: commission.upfrontBonus,
+        totalCommission: commission.totalCommission,
+        status: commission.status,
+        createdAt: commission.createdAt,
+        oteApplied: commission.oteApplied
+      }));
+      
+      // Step 10: Return the complete report data
+      return {
+        commissions: commissionItems,
+        summary: {
+          totalCommission: totalCommission.toString(),
+          totalDeals: commissionCount,
+          avgCommission: avgCommission.toFixed(2),
+          byStatus: statusCounts
+        },
+        byAE
+      };
+    } catch (error) {
+      console.error("Error generating report:", error);
+      throw error;
     }
-    
-    if (filters?.endDate) {
-      const endDate = new Date(filters.endDate);
-      endDate.setHours(23, 59, 59, 999);
-      conditions.push(lte(commissions.createdAt, endDate));
-    }
-    
-    if (filters?.aeId) {
-      conditions.push(eq(commissions.aeId, filters.aeId));
-    }
-    
-    if (filters?.contractType) {
-      conditions.push(eq(contracts.contractType, filters.contractType));
-    }
-    
-    let query = db
-      .select({
-        commission: commissions,
-        ae: users,
-        invoice: invoices,
-        contract: contracts
-      })
-      .from(commissions)
-      .leftJoin(users, eq(commissions.aeId, users.id))
-      .leftJoin(invoices, eq(commissions.invoiceId, invoices.id))
-      .leftJoin(contracts, eq(invoices.contractId, contracts.id))
-      .where(and(...conditions));
-    
-    const results = await query;
-    
-    // Filter by min/max invoice amount if provided
-    let filteredResults = results;
-    if (filters?.minValue !== undefined) {
-      filteredResults = filteredResults.filter(
-        r => r.invoice && Number(r.invoice.amount) >= (filters.minValue || 0)
-      );
-    }
-    if (filters?.maxValue !== undefined) {
-      filteredResults = filteredResults.filter(
-        r => r.invoice && Number(r.invoice.amount) <= (filters.maxValue || 0)
-      );
-    }
-    
-    // Add the detailed commission records to the report
-    reportData.commissions = filteredResults.map(({ commission, ae, invoice, contract }) => ({
-      commissionId: commission.id,
-      aeId: commission.aeId,
-      aeName: ae ? ae.name : 'Unknown AE',
-      clientName: contract ? contract.clientName : 'Unknown Client',
-      contractType: contract ? contract.contractType : 'unknown',
-      invoiceAmount: invoice ? invoice.amount.toString() : '0',
-      baseCommission: commission.baseCommission,
-      pilotBonus: commission.pilotBonus,
-      multiYearBonus: commission.multiYearBonus,
-      upfrontBonus: commission.upfrontBonus,
-      totalCommission: commission.totalCommission,
-      status: commission.status,
-      createdAt: commission.createdAt,
-      oteApplied: commission.oteApplied
-    }));
-    
-    // Complete the report with the summary data
-    return {
-      commissions: reportData.commissions,
-      summary: reportData.summary,
-      byAE: reportData.byAE
-    };
   }
 }
