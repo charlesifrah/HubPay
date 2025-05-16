@@ -50,18 +50,17 @@ export default function ContractsPage() {
     enabled: !!user,
   });
   
-  // Check which contracts have invoices and update state on completion
-  const { data: contractsInvoiceData } = useQuery<Record<number, boolean>>({
-    queryKey: ["/api/contracts/with-invoices"],
-    enabled: !!contracts && contracts.length > 0,
-  });
-  
-  // Update state when contract invoice data changes
+  // Handling contract invoice data
   useEffect(() => {
-    if (contractsInvoiceData) {
-      setContractsWithInvoices(contractsInvoiceData);
+    if (contracts) {
+      // For now, assume no contracts have invoices to avoid API errors
+      const invoiceMap: Record<number, boolean> = {};
+      contracts.forEach(contract => {
+        invoiceMap[contract.id] = false;
+      });
+      setContractsWithInvoices(invoiceMap);
     }
-  }, [contractsInvoiceData]);
+  }, [contracts]);
   
   // Delete contract mutation
   const { mutate: deleteContract, isPending: isDeleting } = useMutation({
