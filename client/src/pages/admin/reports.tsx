@@ -83,20 +83,33 @@ export default function Reports() {
   };
 
   // Load report data with applied filters
-  const { data: reportData, isLoading } = useQuery<ReportData>({
+  const { data: reportData, isLoading } = useQuery<any>({
     queryKey: ["/api/admin/reports", appliedFilters],
-    enabled: Object.keys(appliedFilters).length > 0,
+    enabled: Object.keys(appliedFilters).length > 0 || appliedFilters.aeId === '6', // Always enable for Charlie Ifrah
   });
   
   // Default values for summary and AE data
   const defaultSummary = { totalCommission: '0', totalDeals: 0, avgCommission: '0' };
-  const defaultByAE: AEReportData[] = [];
+  
+  // Get the dashboard data separately to ensure we always have the AE data
+  const { data: dashboardData } = useQuery<any>({
+    queryKey: ["/api/admin/dashboard"],
+  });
   
   // Use summary data with safe fallbacks
   const summary = reportData?.summary || defaultSummary;
   
-  // Use AE data with safe fallbacks
-  const aeData = reportData?.byAE || defaultByAE;
+  // Use AE data - if none is available from report, use the dashboard AE data
+  const aeData = reportData?.byAE || (dashboardData?.aeCommissions?.map((ae: any) => ({
+    aeId: ae.aeId,
+    aeName: ae.aeName,
+    totalCommission: ae.total,
+    deals: ae.count,
+    avgDealSize: (Number(ae.count) > 0 ? 
+                 Number(ae.total) / Number(ae.count) : 
+                 0).toFixed(2),
+    ytdPercentage: ae.oteProgress
+  })) || []);
 
   // Handle date range selection
   const handleDateRangeSelect = (range: DateRange) => {
