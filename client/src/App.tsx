@@ -39,6 +39,7 @@ function Router() {
       {/* Upload routes removed - now using modals */}
       <ProtectedRoute path="/admin/payout-approval" component={PayoutApproval} adminOnly={true} />
       <ProtectedRoute path="/admin/reports" component={Reports} adminOnly={true} />
+      <ProtectedRoute path="/admin/contracts" component={ContractsPage} adminOnly={true} />
       
       {/* AE Routes */}
       <ProtectedRoute path="/ae/dashboard" component={AEDashboard} />
