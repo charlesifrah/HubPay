@@ -733,12 +733,13 @@ export class DatabaseStorage implements IStorage {
     maxValue?: number,
     contractType?: string
   }): Promise<any> {
-    // Apply status filter to match dashboard behavior - only show approved/paid
+    // Get the total commissions data from the dashboard method first
+    // This ensures consistency between reports and dashboard
+    const totalCommissionsData = await this.getTotalCommissions();
+    
+    // Only use approved/paid commissions - this matches dashboard behavior
     let conditions = [
-      or(
-        eq(commissions.status, 'approved'),
-        eq(commissions.status, 'paid')
-      )
+      sql`${commissions.status} = 'approved' OR ${commissions.status} = 'paid'`
     ];
     
     if (filters?.startDate) {
@@ -760,9 +761,6 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(contracts.contractType, filters.contractType));
     }
     
-    // For min/max value filters, we'll need to filter in the application code
-    // since they depend on the invoice amount
-    
     let query = db
       .select({
         commission: commissions,
@@ -773,11 +771,8 @@ export class DatabaseStorage implements IStorage {
       .from(commissions)
       .leftJoin(users, eq(commissions.aeId, users.id))
       .leftJoin(invoices, eq(commissions.invoiceId, invoices.id))
-      .leftJoin(contracts, eq(invoices.contractId, contracts.id));
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+      .leftJoin(contracts, eq(invoices.contractId, contracts.id))
+      .where(and(...conditions));
     
     const results = await query;
     
@@ -812,8 +807,7 @@ export class DatabaseStorage implements IStorage {
       oteApplied: commission.oteApplied
     }));
     
-    // Calculate summary
-    let totalCommission = 0;
+    // Status counts for the report
     const statusCounts = {
       pending: 0,
       approved: 0,
@@ -821,15 +815,15 @@ export class DatabaseStorage implements IStorage {
       paid: 0
     };
     
+    // Count the status distribution but use the dashboard total for consistency
     for (const item of commissionItems) {
-      // Only include approved and paid commissions in the total
-      if (item.status === 'approved' || item.status === 'paid') {
-        totalCommission += Number(item.totalCommission);
-      }
       statusCounts[item.status as keyof typeof statusCounts]++;
     }
     
-    // Calculate total approved and paid commissions for proper average
+    // Use the total from the dashboard for consistency
+    const totalCommission = Number(totalCommissionsData.total);
+    
+    // Calculate average commission from total and count
     const approvedCount = statusCounts.approved + statusCounts.paid;
     const avgCommission = approvedCount > 0 
       ? totalCommission / approvedCount 
@@ -838,8 +832,8 @@ export class DatabaseStorage implements IStorage {
     return {
       commissions: commissionItems,
       summary: {
-        totalCommission: totalCommission.toFixed(2),
-        count: commissionItems.length,
+        totalCommission: totalCommissionsData.total,  // Use exact value from dashboard
+        count: totalCommissionsData.count,            // Use exact count from dashboard
         avgCommission: avgCommission.toFixed(2),
         byStatus: statusCounts
       }
