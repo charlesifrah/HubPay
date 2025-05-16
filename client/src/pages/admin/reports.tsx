@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, FileText, Download, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -64,6 +65,7 @@ type ReportSummary = {
 };
 
 export default function Reports() {
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
@@ -130,10 +132,10 @@ export default function Reports() {
     const newFilters = {
       ...(dateRange.from && { startDate: format(dateRange.from, 'yyyy-MM-dd') }),
       ...(dateRange.to && { endDate: format(dateRange.to, 'yyyy-MM-dd') }),
-      ...(selectedAE && { aeId: selectedAE }),
-      ...(contractType && { contractType }),
-      ...(minValue && { minValue }),
-      ...(maxValue && { maxValue }),
+      ...(filters.aeId && { aeId: filters.aeId }),
+      ...(filters.contractType && { contractType: filters.contractType }),
+      ...(filters.minValue && { minValue: filters.minValue }),
+      ...(filters.maxValue && { maxValue: filters.maxValue }),
     };
     
     // Make sure we have at least one filter
