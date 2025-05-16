@@ -176,7 +176,7 @@ export default function ContractsPage() {
               </TableHeader>
               <TableBody>
                 {contracts.map((contract) => {
-                  const hasInvoices = contractsInvoiceData && contractsInvoiceData[contract.id] === true;
+                  const hasInvoices = contractsWithInvoices[contract.id] === true;
                   
                   return (
                     <TableRow key={contract.id}>
