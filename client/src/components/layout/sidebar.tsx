@@ -231,16 +231,14 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
               window.history.pushState({}, "", route);
               window.dispatchEvent(new PopStateEvent("popstate"));
             }}
-            className="bg-transparent border-0 p-0 flex items-center justify-center gap-3"
+            className="bg-transparent border-0 p-0 flex items-center justify-center"
           >
-            <div className="flex flex-col items-center">
-              <img 
-                src={HLogo} 
-                alt="H Logo" 
-                className="h-12 mx-auto"
-              />
-              <span className="text-xl font-semibold text-white cursor-pointer mt-1">Commission App</span>
-            </div>
+            <img 
+              src={HLogo} 
+              alt="H Logo" 
+              className="h-12"
+            />
+            <span className="text-xl font-semibold text-white cursor-pointer ml-3">Commission App</span>
           </button>
         </div>
       </div>
