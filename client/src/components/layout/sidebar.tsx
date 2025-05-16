@@ -235,7 +235,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           <img 
             src={HPAYLogo} 
             alt="HPAY Logo" 
-            className="h-8 mr-2"
+            className="h-12 mr-3"
           />
           <span className="text-xl font-semibold text-white cursor-pointer">Commission App</span>
         </button>
