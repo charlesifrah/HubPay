@@ -392,13 +392,15 @@ export default function Reports() {
                             <div className="text-sm text-gray-500">${Number(ae.avgDealSize).toLocaleString()}</div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center">
-                              <div className="mr-2 text-sm font-medium text-gray-900">{ae.ytdPercentage.toFixed(1)}%</div>
-                              <div className="relative w-24 h-2 bg-gray-200 rounded">
-                                <div 
-                                  className="absolute top-0 left-0 h-2 bg-primary-600 rounded" 
-                                  style={{ width: `${ae.ytdPercentage}%` }}
-                                ></div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-sm font-medium text-gray-900">{ae.ytdPercentage.toFixed(2)}%</div>
+                              <div className="w-24">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-primary-600 h-2 rounded-full"
+                                    style={{ width: `${Math.min(ae.ytdPercentage, 100)}%` }}
+                                  ></div>
+                                </div>
                               </div>
                             </div>
                           </TableCell>
