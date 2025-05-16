@@ -31,10 +31,18 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function AEDashboard() {
   const { user } = useAuth();
+  const [period, setPeriod] = useState<string>("6");
 
-  // Load dashboard data
+  // Load dashboard data with the selected period
   const { data, isLoading, error } = useQuery({
-    queryKey: [`/api/ae/dashboard/${user?.id}`],
+    queryKey: [`/api/ae/dashboard/${user?.id}`, period],
+    queryFn: async () => {
+      const response = await fetch(`/api/ae/dashboard/${user?.id}?period=${period}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      return response.json();
+    },
     enabled: !!user?.id,
   });
 
@@ -180,7 +188,10 @@ export default function AEDashboard() {
               <CardTitle>Monthly Performance</CardTitle>
               <CardDescription>Your commission earnings over time</CardDescription>
             </div>
-            <Select defaultValue="6">
+            <Select 
+              value={period} 
+              onValueChange={(value) => setPeriod(value)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select a period" />
               </SelectTrigger>

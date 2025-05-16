@@ -172,6 +172,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ae/dashboard/:aeId", async (req, res) => {
     try {
       const aeId = parseInt(req.params.aeId);
+      let months = 6; // Default to 6 months
+      
+      // Handle the period parameter from query string
+      if (req.query.period) {
+        if (req.query.period === "ytd") {
+          // Calculate months from January to current month for YTD option
+          const now = new Date();
+          months = now.getMonth() + 1; // +1 because months are 0-indexed
+        } else {
+          // For numeric periods (6, 12)
+          months = parseInt(req.query.period as string);
+        }
+      }
       
       // Verify user has permission to access this AE's data
       const currentUserId = req.body.currentUserId;
@@ -188,7 +201,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalDeals = await getStorage().getTotalDealsForAE(aeId);
       const oteProgress = await getStorage().getOTEProgressForAE(aeId);
       const recentDeals = await getStorage().getRecentDealsForAE(aeId, 5); // Get 5 most recent deals
-      const monthlyPerformance = await getStorage().getMonthlyCommissionsForAE(aeId, 6); // Get last 6 months of data
+      
+      const monthlyPerformance = await getStorage().getMonthlyCommissionsForAE(aeId, months);
       
       res.json({
         monthlyCommission,
