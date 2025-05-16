@@ -31,7 +31,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function AEDashboard() {
   const { user } = useAuth();
-  const [period, setPeriod] = useState<string>("6");
+  const [period, setPeriod] = useState<string>("3");
 
   // Load dashboard data with the selected period
   const { data, isLoading, error } = useQuery({
@@ -209,6 +209,7 @@ export default function AEDashboard() {
                 <SelectValue placeholder="Select a period" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="3">Last 3 Months</SelectItem>
                 <SelectItem value="6">Last 6 Months</SelectItem>
                 <SelectItem value="12">Last 12 Months</SelectItem>
                 <SelectItem value="ytd">Year to Date</SelectItem>
