@@ -232,14 +232,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           }}
           className="bg-transparent border-0 p-0 text-center"
         >
-          <div className="flex flex-col items-center justify-center">
-            <img 
-              src={HLogo} 
-              alt="H Logo" 
-              className="h-8 mb-1"
-            />
-            <span className="text-sm font-semibold text-white">Commission App</span>
-          </div>
+          <span className="text-xl font-semibold text-white">Commission App</span>
         </button>
       </div>
 
