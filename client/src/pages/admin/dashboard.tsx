@@ -107,8 +107,8 @@ export default function AdminDashboard() {
             icon={<FileText className="h-5 w-5" />}
             iconBgColor="bg-purple-100"
             iconColor="text-purple-600"
-            linkText="Upload contract"
-            linkHref="/admin/upload-contract"
+            linkText="View Contracts"
+            linkHref="/admin/contracts"
           />
         </div>
 
