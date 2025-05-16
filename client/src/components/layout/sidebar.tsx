@@ -232,7 +232,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
           }}
           className="bg-transparent border-0 p-0 text-center"
         >
-          <span className="text-xl font-semibold text-white">Commission App</span>
+          <span className="text-xl font-semibold" style={{ color: "#333333" }}>Hubble Pay</span>
         </button>
       </div>
 
