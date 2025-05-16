@@ -83,16 +83,20 @@ export default function Reports() {
   };
 
   // Load report data with applied filters
-  const { data: reportData = { summary: { totalCommission: '0', totalDeals: 0, avgCommission: '0' }, byAE: [] }, isLoading } = useQuery<ReportData>({
+  const { data: reportData, isLoading } = useQuery<ReportData>({
     queryKey: ["/api/admin/reports", appliedFilters],
     enabled: Object.keys(appliedFilters).length > 0,
   });
-
-  // Use summary data
-  const summary = reportData.summary;
-
-  // Use AE data
-  const aeData = reportData.byAE;
+  
+  // Default values for summary and AE data
+  const defaultSummary = { totalCommission: '0', totalDeals: 0, avgCommission: '0' };
+  const defaultByAE: AEReportData[] = [];
+  
+  // Use summary data with safe fallbacks
+  const summary = reportData?.summary || defaultSummary;
+  
+  // Use AE data with safe fallbacks
+  const aeData = reportData?.byAE || defaultByAE;
 
   // Handle date range selection
   const handleDateRangeSelect = (range: DateRange) => {
@@ -343,7 +347,7 @@ export default function Reports() {
                           Loading report data...
                         </TableCell>
                       </TableRow>
-                    ) : !reportData || aeData.length === 0 ? (
+                    ) : aeData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
                           No data available for the selected filters
