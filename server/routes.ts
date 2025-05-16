@@ -1,7 +1,7 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { getStorage } from "./storage";
-import { setupAuth } from "./auth";
+import { setupAuth, verifyToken } from "./auth";
 import { CommissionEngine } from "./commissionEngine";
 import { setupAEManagementRoutes } from "./ae-management";
 import { setupAdminManagementRoutes } from "./admin-management";
@@ -186,13 +186,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Use authenticated user directly from session
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Please log in to access this resource" });
+      // Check for authentication using JWT token
+      const authHeader = req.headers.authorization;
+      
+      // For debugging purposes - let's check what we received
+      console.log("Authorization header:", authHeader ? "Present" : "Missing");
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Unauthorized, no token provided" });
       }
       
+      const token = authHeader.split(' ')[1];
+      console.log("Token received in AE dashboard API");
+      
+      const payload: any = verifyToken(token);
+      
+      if (!payload) {
+        return res.status(401).json({ message: "Unauthorized, invalid token" });
+      }
+      
+      console.log("Token payload:", payload);
+      
+      // Get the user from token
+      const user = await getStorage().getUser(payload.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      console.log("User retrieved:", { id: user.id, role: user.role });
+      
       // Verify user has permission to access this AE's data
-      const user = req.user as Express.User;
       if (user.id !== aeId && user.role !== 'admin') {
         return res.status(403).json({ message: "Not authorized to view this AE's dashboard" });
       }

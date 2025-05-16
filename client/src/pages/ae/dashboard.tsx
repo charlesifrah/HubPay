@@ -37,10 +37,23 @@ export default function AEDashboard() {
   const { data, isLoading, error } = useQuery({
     queryKey: [`/api/ae/dashboard/${user?.id}`, period],
     queryFn: async () => {
-      const response = await fetch(`/api/ae/dashboard/${user?.id}?period=${period}`);
+      // Get the token from local storage
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      const response = await fetch(`/api/ae/dashboard/${user?.id}?period=${period}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard data');
       }
+      
       return response.json();
     },
     enabled: !!user?.id,
