@@ -678,7 +678,8 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(commissions.aeId, aeId),
-            gte(commissions.createdAt, startDate)
+            gte(commissions.createdAt, startDate),
+            sql`(${commissions.status} = 'approved' OR ${commissions.status} = 'paid')`
           )
         )
         .groupBy(sql`date_trunc('month', ${commissions.createdAt})`)
