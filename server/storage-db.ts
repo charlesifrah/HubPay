@@ -733,10 +733,39 @@ export class DatabaseStorage implements IStorage {
     maxValue?: number,
     contractType?: string
   }): Promise<any> {
-    // Get the total commissions data from the dashboard method first
-    // This ensures consistency between reports and dashboard
+    // First, get the exact commission data from the dashboard
     const totalCommissionsData = await this.getTotalCommissions();
+    const aeCommissionsData = await this.getCommissionsByAE();
     
+    // Prepare a structure for the report data
+    const reportData = {
+      commissions: [],
+      summary: {
+        totalCommission: totalCommissionsData.total,
+        count: totalCommissionsData.count,
+        avgCommission: (Number(totalCommissionsData.count) > 0 ? 
+                        Number(totalCommissionsData.total) / Number(totalCommissionsData.count) : 
+                        0).toFixed(2),
+        byStatus: {
+          pending: 0,
+          approved: Number(totalCommissionsData.count),
+          rejected: 0,
+          paid: 0
+        }
+      },
+      byAE: aeCommissionsData.map(ae => ({
+        aeId: ae.aeId,
+        aeName: ae.aeName,
+        totalCommission: ae.total,
+        deals: ae.count,
+        avgDealSize: (Number(ae.count) > 0 ? 
+                     Number(ae.total) / Number(ae.count) : 
+                     0).toFixed(2),
+        ytdPercentage: ae.oteProgress
+      }))
+    };
+    
+    // Get the detailed commission records only for display
     // Only use approved/paid commissions - this matches dashboard behavior
     let conditions = [
       sql`${commissions.status} = 'approved' OR ${commissions.status} = 'paid'`
@@ -789,8 +818,8 @@ export class DatabaseStorage implements IStorage {
       );
     }
     
-    // Build the report
-    const commissionItems = filteredResults.map(({ commission, ae, invoice, contract }) => ({
+    // Add the detailed commission records to the report
+    reportData.commissions = filteredResults.map(({ commission, ae, invoice, contract }) => ({
       commissionId: commission.id,
       aeId: commission.aeId,
       aeName: ae ? ae.name : 'Unknown AE',
@@ -807,36 +836,11 @@ export class DatabaseStorage implements IStorage {
       oteApplied: commission.oteApplied
     }));
     
-    // Status counts for the report
-    const statusCounts = {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
-      paid: 0
-    };
-    
-    // Count the status distribution but use the dashboard total for consistency
-    for (const item of commissionItems) {
-      statusCounts[item.status as keyof typeof statusCounts]++;
-    }
-    
-    // Use the total from the dashboard for consistency
-    const totalCommission = Number(totalCommissionsData.total);
-    
-    // Calculate average commission from total and count
-    const approvedCount = statusCounts.approved + statusCounts.paid;
-    const avgCommission = approvedCount > 0 
-      ? totalCommission / approvedCount 
-      : 0;
-    
+    // Complete the report with the summary data
     return {
-      commissions: commissionItems,
-      summary: {
-        totalCommission: totalCommissionsData.total,  // Use exact value from dashboard
-        count: totalCommissionsData.count,            // Use exact count from dashboard
-        avgCommission: avgCommission.toFixed(2),
-        byStatus: statusCounts
-      }
+      commissions: reportData.commissions,
+      summary: reportData.summary,
+      byAE: reportData.byAE
     };
   }
 }
