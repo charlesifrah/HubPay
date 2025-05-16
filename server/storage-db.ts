@@ -733,7 +733,13 @@ export class DatabaseStorage implements IStorage {
     maxValue?: number,
     contractType?: string
   }): Promise<any> {
-    let conditions = [];
+    // Apply status filter to match dashboard behavior - only show approved/paid
+    let conditions = [
+      or(
+        eq(commissions.status, 'approved'),
+        eq(commissions.status, 'paid')
+      )
+    ];
     
     if (filters?.startDate) {
       const startDate = new Date(filters.startDate);
