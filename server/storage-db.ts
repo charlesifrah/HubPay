@@ -66,6 +66,7 @@ export interface IStorage {
   getTotalDealsForAE(aeId: number): Promise<number>;
   getOTEProgressForAE(aeId: number): Promise<{ current: string, percentage: number }>;
   getRecentDealsForAE(aeId: number, limit: number): Promise<CommissionWithDetails[]>;
+  getMonthlyCommissionsForAE(aeId: number, months: number): Promise<Array<{name: string, commission: number}>>;
   
   // Commission statement
   getCommissionsForAE(
@@ -657,6 +658,71 @@ export class DatabaseStorage implements IStorage {
       contractType: contractType || 'unknown',
       aeName: aeName || 'Unknown AE'
     }));
+  }
+  
+  async getMonthlyCommissionsForAE(aeId: number, months: number): Promise<Array<{name: string, commission: number}>> {
+    try {
+      // Create a date object for filtering (go back X months from today)
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - months + 1); // Include current month
+      startDate.setDate(1); // First day of the month
+      startDate.setHours(0, 0, 0, 0); // Beginning of the day
+      
+      // Get all commissions for this AE within the timeframe
+      const commissionsByMonth = await db
+        .select({
+          month: sql`date_trunc('month', ${commissions.createdAt})::date`,
+          total: sql`sum(${commissions.baseCommission}::numeric + ${commissions.pilotBonus}::numeric + ${commissions.multiYearBonus}::numeric + ${commissions.upfrontBonus}::numeric)`,
+        })
+        .from(commissions)
+        .where(
+          and(
+            eq(commissions.aeId, aeId),
+            gte(commissions.createdAt, startDate)
+          )
+        )
+        .groupBy(sql`date_trunc('month', ${commissions.createdAt})`)
+        .orderBy(sql`date_trunc('month', ${commissions.createdAt})`);
+      
+      // Format the data for the chart
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      // Create an array of the last X months with 0 values
+      const result = [];
+      const currentDate = new Date();
+      
+      for (let i = months - 1; i >= 0; i--) {
+        const monthDate = new Date();
+        monthDate.setMonth(currentDate.getMonth() - i);
+        
+        const monthName = monthNames[monthDate.getMonth()];
+        const year = monthDate.getFullYear();
+        
+        // Find commission data for this month
+        const monthData = commissionsByMonth.find(item => {
+          const date = new Date(item.month);
+          return date.getMonth() === monthDate.getMonth() && date.getFullYear() === monthDate.getFullYear();
+        });
+        
+        result.push({
+          name: monthName,
+          commission: monthData ? parseFloat(monthData.total as string) : 0
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Error getting monthly commissions for AE:", error);
+      // Return dummy data for last 6 months if there's an error
+      return [
+        { name: 'Jan', commission: 0 },
+        { name: 'Feb', commission: 0 },
+        { name: 'Mar', commission: 0 },
+        { name: 'Apr', commission: 0 },
+        { name: 'May', commission: 0 },
+        { name: 'Jun', commission: 0 }
+      ];
+    }
   }
 
   // Commission statement

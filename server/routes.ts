@@ -188,6 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalDeals = await getStorage().getTotalDealsForAE(aeId);
       const oteProgress = await getStorage().getOTEProgressForAE(aeId);
       const recentDeals = await getStorage().getRecentDealsForAE(aeId, 5); // Get 5 most recent deals
+      const monthlyPerformance = await getStorage().getMonthlyCommissionsForAE(aeId, 6); // Get last 6 months of data
       
       res.json({
         monthlyCommission,
@@ -195,9 +196,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingApprovals,
         totalDeals,
         oteProgress,
-        recentDeals
+        recentDeals,
+        monthlyPerformance
       });
     } catch (error) {
+      console.error("Error fetching AE dashboard data:", error);
       res.status(500).json({ message: "Error fetching AE dashboard data" });
     }
   });

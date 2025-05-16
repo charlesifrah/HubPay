@@ -4,6 +4,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { ProgressBar } from "@/components/dashboard/progress-bar";
 import { RecentDealsTable, RecentDeal } from "@/components/dashboard/recent-deals-table";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -55,16 +56,17 @@ export default function AEDashboard() {
       }))
     : [];
 
-  // Sample monthly performance data
-  // In a real app, this would come from the API
-  const monthlyPerformanceData = [
-    { name: 'Jan', commission: 28500 },
-    { name: 'Feb', commission: 32000 },
-    { name: 'Mar', commission: 26000 },
-    { name: 'Apr', commission: 39000 },
-    { name: 'May', commission: 48000 },
-    { name: 'Jun', commission: 42000 },
-  ];
+  // Get the monthly performance data from the API
+  const monthlyPerformanceData = !isLoading && !error && data?.monthlyPerformance
+    ? data.monthlyPerformance
+    : [
+        { name: 'Jan', commission: 0 },
+        { name: 'Feb', commission: 0 },
+        { name: 'Mar', commission: 0 },
+        { name: 'Apr', commission: 0 },
+        { name: 'May', commission: 0 },
+        { name: 'Jun', commission: 0 },
+      ];
 
   // Format OTE progress data
   const oteProgress = data?.oteProgress || { current: "0", percentage: 0 };
