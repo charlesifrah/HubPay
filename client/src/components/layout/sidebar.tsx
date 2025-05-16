@@ -233,12 +233,14 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             }}
             className="bg-transparent border-0 p-0 flex items-center justify-center gap-3"
           >
-            <img 
-              src={HLogo} 
-              alt="H Logo" 
-              className="h-12"
-            />
-            <span className="text-xl font-semibold text-white cursor-pointer">Commission App</span>
+            <div className="flex flex-col items-center">
+              <img 
+                src={HLogo} 
+                alt="H Logo" 
+                className="h-12 mx-auto"
+              />
+              <span className="text-xl font-semibold text-white cursor-pointer mt-1">Commission App</span>
+            </div>
           </button>
         </div>
       </div>
