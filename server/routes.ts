@@ -186,13 +186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Use authenticated user directly from session
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Please log in to access this resource" });
+      }
+      
       // Verify user has permission to access this AE's data
-      const currentUserId = req.body.currentUserId;
-      if (currentUserId !== aeId) {
-        const currentUser = await getStorage().getUser(currentUserId);
-        if (currentUser?.role !== 'admin') {
-          return res.status(403).json({ message: "Not authorized to view this AE's dashboard" });
-        }
+      const user = req.user as Express.User;
+      if (user.id !== aeId && user.role !== 'admin') {
+        return res.status(403).json({ message: "Not authorized to view this AE's dashboard" });
       }
       
       const monthlyCommission = await getStorage().getCurrentMonthCommissionForAE(aeId);
