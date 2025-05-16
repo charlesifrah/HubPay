@@ -397,8 +397,8 @@ export default function Reports() {
                               <div className="w-24">
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                   <div
-                                    className="bg-primary-600 h-2 rounded-full"
-                                    style={{ width: `${Math.min(ae.ytdPercentage, 100)}%` }}
+                                    className="bg-blue-500 h-2 rounded-full"
+                                    style={{ width: `${Math.min(Math.max(ae.ytdPercentage, 0.5), 100)}%` }}
                                   ></div>
                                 </div>
                               </div>
