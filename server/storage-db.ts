@@ -742,7 +742,7 @@ export class DatabaseStorage implements IStorage {
       commissions: [],
       summary: {
         totalCommission: totalCommissionsData.total,
-        count: totalCommissionsData.count,
+        totalDeals: Number(totalCommissionsData.count),
         avgCommission: (Number(totalCommissionsData.count) > 0 ? 
                         Number(totalCommissionsData.total) / Number(totalCommissionsData.count) : 
                         0).toFixed(2),
@@ -757,7 +757,7 @@ export class DatabaseStorage implements IStorage {
         aeId: ae.aeId,
         aeName: ae.aeName,
         totalCommission: ae.total,
-        deals: ae.count,
+        deals: Number(ae.count),
         avgDealSize: (Number(ae.count) > 0 ? 
                      Number(ae.total) / Number(ae.count) : 
                      0).toFixed(2),
