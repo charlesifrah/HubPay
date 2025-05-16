@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import HPAYLogo from "../../assets/HPAY-logo.png";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -229,8 +230,13 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             window.history.pushState({}, "", route);
             window.dispatchEvent(new PopStateEvent("popstate"));
           }}
-          className="bg-transparent border-0 p-0"
+          className="bg-transparent border-0 p-0 flex items-center"
         >
+          <img 
+            src={HPAYLogo} 
+            alt="HPAY Logo" 
+            className="h-8 mr-2"
+          />
           <span className="text-xl font-semibold text-white cursor-pointer">Commission App</span>
         </button>
       </div>
