@@ -83,33 +83,19 @@ export default function Reports() {
   };
 
   // Load report data with applied filters
-  const { data: reportData, isLoading } = useQuery<any>({
+  const { data: reportData, isLoading } = useQuery<ReportData>({
     queryKey: ["/api/admin/reports", appliedFilters],
-    enabled: Object.keys(appliedFilters).length > 0 || appliedFilters.aeId === '6', // Always enable for Charlie Ifrah
+    enabled: Object.keys(appliedFilters).length > 0,
   });
   
   // Default values for summary and AE data
   const defaultSummary = { totalCommission: '0', totalDeals: 0, avgCommission: '0' };
   
-  // Get the dashboard data separately to ensure we always have the AE data
-  const { data: dashboardData } = useQuery<any>({
-    queryKey: ["/api/admin/dashboard"],
-  });
-  
   // Use summary data with safe fallbacks
   const summary = reportData?.summary || defaultSummary;
   
-  // Use AE data - if none is available from report, use the dashboard AE data
-  const aeData = reportData?.byAE || (dashboardData?.aeCommissions?.map((ae: any) => ({
-    aeId: ae.aeId,
-    aeName: ae.aeName,
-    totalCommission: ae.total,
-    deals: ae.count,
-    avgDealSize: (Number(ae.count) > 0 ? 
-                 Number(ae.total) / Number(ae.count) : 
-                 0).toFixed(2),
-    ytdPercentage: ae.oteProgress
-  })) || []);
+  // Use AE data with safe fallbacks
+  const aeData = reportData?.byAE || [];
 
   // Handle date range selection
   const handleDateRangeSelect = (range: DateRange) => {
@@ -140,7 +126,29 @@ export default function Reports() {
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    setAppliedFilters({ ...filters });
+    // Create a new filters object with only the defined values
+    const newFilters = {
+      ...(dateRange.from && { startDate: format(dateRange.from, 'yyyy-MM-dd') }),
+      ...(dateRange.to && { endDate: format(dateRange.to, 'yyyy-MM-dd') }),
+      ...(selectedAE && { aeId: selectedAE }),
+      ...(contractType && { contractType }),
+      ...(minValue && { minValue }),
+      ...(maxValue && { maxValue }),
+    };
+    
+    // Make sure we have at least one filter
+    if (Object.keys(newFilters).length === 0) {
+      toast({
+        title: "Please select at least one filter",
+        description: "You need to apply at least one filter to generate a report",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Apply the filters
+    setAppliedFilters(newFilters);
+    console.log("Applied filters:", newFilters);
   };
 
   // Handle reset filters
