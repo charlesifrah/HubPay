@@ -1,4 +1,15 @@
 import { Request, Response } from 'express';
+import { getStorage } from './storage';
+
+// Extend Express Request type for authenticated user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+      isAuthenticated(): boolean;
+    }
+  }
+}
 
 // Tabs API interface
 interface TabsInvoice {
@@ -172,8 +183,7 @@ class TabsApiService {
     };
   }
 
-  async syncInvoiceToDatabase(tabsInvoice: TabsInvoice, contractId?: number) {
-    const { getStorage } = require('./storage');
+  async syncInvoiceToDatabase(tabsInvoice: TabsInvoice, contractId?: number, createdBy?: number) {
     
     console.log('Syncing Tabs invoice to database:', {
       tabsId: tabsInvoice.id,
@@ -218,10 +228,11 @@ class TabsApiService {
         invoiceDate: tabsInvoice.paid_date || tabsInvoice.invoice_date,
         revenueType: 'recurring' as const,
         notes: `Synced from Tabs - ${tabsInvoice.invoice_number}${tabsInvoice.description ? ` - ${tabsInvoice.description}` : ''}`,
-        tabsInvoiceId: tabsInvoice.id
+        tabsInvoiceId: tabsInvoice.id,
+        createdBy: createdBy || 1 // Default to admin user if not provided
       };
       
-      const createdInvoice = await getStorage().createInvoice(invoiceData);
+      const createdInvoice = await storage.createInvoice(invoiceData);
       console.log('Successfully synced Tabs invoice to database:', createdInvoice.id);
       
       return createdInvoice;
@@ -260,7 +271,18 @@ export function setupTabsApiRoutes(app: any) {
   // Sync a specific Tabs invoice to local database
   app.post('/api/tabs/invoices/sync', async (req: Request, res: Response) => {
     try {
+      // Check authentication
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Not authenticated' });
+      }
+
       const { tabsInvoiceId, contractId } = req.body;
+      const user = req.user as any;
+      const userId = user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'User ID not found' });
+      }
       
       // First fetch the specific invoice from Tabs
       const allInvoices = await tabsApiService.fetchPaidInvoices();
@@ -270,7 +292,7 @@ export function setupTabsApiRoutes(app: any) {
         return res.status(404).json({ error: 'Invoice not found in Tabs' });
       }
 
-      await tabsApiService.syncInvoiceToDatabase(tabsInvoice, contractId);
+      await tabsApiService.syncInvoiceToDatabase(tabsInvoice, contractId, userId);
       
       res.json({ 
         success: true, 
