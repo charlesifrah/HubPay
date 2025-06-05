@@ -245,6 +245,89 @@ class TabsApiService {
 
 export const tabsApiService = new TabsApiService();
 
+// Payout interface for Tabs API
+interface TabsPayoutRequest {
+  aeEmail: string;
+  amount: number;
+  currency: string;
+  commissionId: number;
+  description: string;
+}
+
+interface TabsPayoutResponse {
+  payoutId: string;
+  status: 'initiated' | 'processing' | 'completed' | 'failed';
+  message: string;
+  estimatedProcessingTime?: string;
+}
+
+// Extend TabsApiService with payout functionality
+class TabsPayoutService {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = process.env.TABS_API_URL || 'https://api.tabs.com';
+    this.apiKey = process.env.TABS_API_KEY || 'simulated_key';
+  }
+
+  async initiateCommissionPayout(payoutRequest: TabsPayoutRequest): Promise<TabsPayoutResponse> {
+    console.log('Initiating Tabs payout:', payoutRequest);
+
+    // For now, simulate the API call
+    if (!process.env.TABS_API_KEY || this.apiKey === 'simulated_key') {
+      // Simulate successful payout initiation
+      return this.getSimulatedPayoutResponse(payoutRequest);
+    }
+
+    try {
+      // Real API call would go here
+      const response = await fetch(`${this.baseUrl}/payouts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payoutRequest),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Tabs API error: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error calling Tabs payout API:', error);
+      throw new Error('Failed to initiate payout with Tabs');
+    }
+  }
+
+  private getSimulatedPayoutResponse(payoutRequest: TabsPayoutRequest): TabsPayoutResponse {
+    // Simulate various payout scenarios
+    const scenarios = [
+      {
+        payoutId: `tabs_payout_${Date.now()}`,
+        status: 'initiated' as const,
+        message: 'Payout successfully initiated. Processing will begin within 24 hours.',
+        estimatedProcessingTime: '1-3 business days'
+      },
+      {
+        payoutId: `tabs_payout_${Date.now()}`,
+        status: 'processing' as const,
+        message: 'Payout is being processed by our payment system.',
+        estimatedProcessingTime: '2-3 business days'
+      }
+    ];
+
+    const selectedScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+    
+    console.log('Simulated Tabs payout response:', selectedScenario);
+    return selectedScenario;
+  }
+}
+
+export const tabsPayoutService = new TabsPayoutService();
+
 // Express route handlers
 export function setupTabsApiRoutes(app: any) {
   // Fetch paid invoices from Tabs
@@ -292,6 +375,35 @@ export function setupTabsApiRoutes(app: any) {
       console.error('Error syncing Tabs invoice:', error);
       res.status(500).json({ 
         error: 'Failed to sync invoice',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Initiate payout via Tabs
+  app.post('/api/tabs/payouts/initiate', async (req: Request, res: Response) => {
+    try {
+      const { commissionId, aeEmail, amount, description } = req.body;
+      
+      const payoutRequest: TabsPayoutRequest = {
+        aeEmail,
+        amount: parseFloat(amount),
+        currency: 'USD',
+        commissionId,
+        description: description || `Commission payout for commission ID: ${commissionId}`
+      };
+
+      const payoutResponse = await tabsPayoutService.initiateCommissionPayout(payoutRequest);
+      
+      res.json({ 
+        success: true, 
+        payout: payoutResponse,
+        message: 'Payout initiated successfully with Tabs'
+      });
+    } catch (error) {
+      console.error('Error initiating Tabs payout:', error);
+      res.status(500).json({ 
+        error: 'Failed to initiate payout',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

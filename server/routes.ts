@@ -365,23 +365,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Approve Commission
+  // Approve Commission (with Tabs payout integration)
   app.patch("/api/admin/commissions/:id/approve", async (req, res) => {
     try {
       const commissionId = parseInt(req.params.id);
       const adminId = req.body.currentUserId;
       
+      // Get commission details for payout
+      const commission = await getStorage().getCommission(commissionId);
+      if (!commission) {
+        return res.status(404).json({ message: "Commission not found" });
+      }
+
+      // Get invoice and contract details
+      const invoice = await getStorage().getInvoice(commission.invoiceId);
+      const contract = invoice ? await getStorage().getContract(invoice.contractId) : null;
+      const ae = contract ? await getStorage().getUser(contract.aeId) : null;
+
+      if (!invoice || !contract || !ae) {
+        return res.status(400).json({ message: "Missing required data for payout" });
+      }
+
+      // Update commission status to approved
       const updatedCommission = await getStorage().updateCommissionStatus(
         commissionId, 
         'approved', 
         adminId
       );
-      
-      res.json({
-        message: "Commission approved successfully",
-        commission: updatedCommission
-      });
+
+      // Initiate Tabs payout
+      try {
+        const { tabsPayoutService } = await import('./tabs-api');
+        
+        const payoutResponse = await tabsPayoutService.initiateCommissionPayout({
+          aeEmail: ae.email,
+          amount: parseFloat(commission.totalCommission),
+          currency: 'USD',
+          commissionId: commissionId,
+          description: `Commission payout for ${contract.clientName} - Invoice ${invoice.invoiceDate}`
+        });
+
+        console.log('Tabs payout initiated:', payoutResponse);
+
+        res.json({
+          message: "Commission approved and payout initiated successfully",
+          commission: updatedCommission,
+          payout: {
+            payoutId: payoutResponse.payoutId,
+            status: payoutResponse.status,
+            message: payoutResponse.message,
+            estimatedProcessingTime: payoutResponse.estimatedProcessingTime
+          }
+        });
+      } catch (payoutError) {
+        console.error('Error initiating Tabs payout:', payoutError);
+        
+        // Commission is still approved even if payout fails
+        res.json({
+          message: "Commission approved but payout initiation failed",
+          commission: updatedCommission,
+          payoutError: payoutError instanceof Error ? payoutError.message : 'Unknown payout error'
+        });
+      }
     } catch (error) {
+      console.error('Error approving commission:', error);
       res.status(500).json({ message: "Error approving commission" });
     }
   });

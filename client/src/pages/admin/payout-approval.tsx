@@ -115,11 +115,25 @@ export default function PayoutApproval() {
       });
       return await response.json();
     },
-    onSuccess: (_, commissionId) => {
-      toast({
-        title: "Commission approved",
-        description: "The commission has been successfully approved.",
-      });
+    onSuccess: (data, commissionId) => {
+      // Check if payout was successfully initiated
+      if (data.payout) {
+        toast({
+          title: "Commission approved & payout initiated",
+          description: `Payout ${data.payout.payoutId} initiated. ${data.payout.message} (${data.payout.estimatedProcessingTime})`,
+        });
+      } else if (data.payoutError) {
+        toast({
+          title: "Commission approved",
+          description: `Commission approved but payout failed: ${data.payoutError}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Commission approved",
+          description: "The commission has been successfully approved.",
+        });
+      }
       
       // Save to localStorage for persistence across server restarts
       saveApprovedCommission(commissionId);
