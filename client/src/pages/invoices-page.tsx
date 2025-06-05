@@ -166,7 +166,7 @@ export default function InvoicesPage() {
                       <TableHead>Invoice Date</TableHead>
                       <TableHead>Paid Date</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
+                      <TableHead>Source</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -197,15 +197,14 @@ export default function InvoicesPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {invoice.notes ? (
-                            <span className="text-sm text-gray-600">{invoice.notes}</span>
-                          ) : (
-                            <span className="text-xs text-gray-400">No notes</span>
-                          )}
-                          {(invoice as any).tabsInvoiceId && (
-                            <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-800">
+                          {(invoice as any).tabsInvoiceId ? (
+                            <Badge variant="outline" className="bg-purple-100 text-purple-800">
                               <ExternalLink className="h-3 w-3 mr-1" />
                               Tabs
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                              Manual
                             </Badge>
                           )}
                         </TableCell>
