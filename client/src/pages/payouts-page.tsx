@@ -23,6 +23,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Layout } from "@/components/layout/layout";
 import {
@@ -32,6 +33,10 @@ import {
   CreditCard,
   Eye,
   X,
+  DollarSign,
+  CheckCircle,
+  Calendar,
+  User,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -183,54 +188,94 @@ export default function PayoutsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>AE</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Invoice Amount</TableHead>
+                  <TableHead className="w-16">ID</TableHead>
+                  <TableHead>Client & AE</TableHead>
+                  <TableHead>Contract Details</TableHead>
                   <TableHead className="text-right">Commission</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Approved By</TableHead>
-                  <TableHead>Approved Date</TableHead>
+                  <TableHead>Approval Details</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-4">
+                    <TableCell colSpan={7} className="text-center py-8">
                       Loading payouts...
                     </TableCell>
                   </TableRow>
                 ) : filteredPayouts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-4">
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       No approved payouts found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredPayouts.map((payout) => (
-                    <TableRow key={payout.id}>
-                      <TableCell>{payout.id}</TableCell>
-                      <TableCell>{payout.contractClientName}</TableCell>
-                      <TableCell>{payout.aeName}</TableCell>
-                      <TableCell>{payout.contractType}</TableCell>
-                      <TableCell className="text-right">${Number(payout.invoiceAmount).toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-medium">${Number(payout.totalCommission).toLocaleString()}</TableCell>
+                    <TableRow key={payout.id} className="hover:bg-gray-50">
+                      <TableCell className="font-mono text-sm">#{payout.id}</TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {payout.status}
-                        </span>
+                        <div>
+                          <div className="font-medium text-gray-900">{payout.contractClientName}</div>
+                          <div className="flex items-center text-sm text-gray-500 mt-1">
+                            <User className="h-3 w-3 mr-1" />
+                            {payout.aeName}
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell>{payout.approvedByName}</TableCell>
-                      <TableCell>{new Date(payout.approvedAt).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div>
+                          <Badge variant="outline" className="text-xs mb-1">
+                            {payout.contractType}
+                          </Badge>
+                          <div className="text-sm text-gray-600">
+                            Invoice: ${Number(payout.invoiceAmount).toLocaleString()}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="font-semibold text-green-600">
+                          ${Number(payout.totalCommission).toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Base: ${Number(payout.baseCommission).toLocaleString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Approved
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">{payout.approvedByName}</div>
+                          <div className="flex items-center text-xs text-gray-500 mt-1">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {new Date(payout.approvedAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(payout.approvedAt).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button 
-                          variant="ghost"
                           size="sm"
+                          variant="outline"
                           onClick={() => setViewDetails(payout)}
+                          className="h-8"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
                         </Button>
                       </TableCell>
                     </TableRow>
