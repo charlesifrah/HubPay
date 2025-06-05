@@ -346,15 +346,15 @@ export default function AdminManagementPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500 hover:bg-green-600';
+        return 'bg-green-100 text-green-800';
       case 'suspended':
-        return 'bg-red-500 hover:bg-red-600';
+        return 'bg-red-100 text-red-800';
       case 'pending':
-        return 'bg-yellow-500 hover:bg-yellow-600';
+        return 'bg-yellow-100 text-yellow-800';
       case 'expired':
-        return 'bg-gray-400 hover:bg-gray-500';
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-500 hover:bg-gray-600';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -754,7 +754,7 @@ export default function AdminManagementPage() {
                         </TableCell>
                         <TableCell>{admin.email}</TableCell>
                         <TableCell>
-                          <Badge className={getStatusBadgeVariant(admin.status)}>
+                          <Badge variant="outline" className={getStatusBadgeVariant(admin.status)}>
                             {admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
                           </Badge>
                         </TableCell>
