@@ -47,7 +47,6 @@ export const contracts = pgTable("contracts", {
   contractLength: integer("contract_length").notNull(),
   paymentTerms: paymentTermsEnum("payment_terms").notNull(),
   isPilot: boolean("is_pilot").default(false),
-  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").notNull().references(() => users.id),
 });
@@ -59,8 +58,8 @@ export const invoices = pgTable("invoices", {
   amount: numeric("amount").notNull(),
   invoiceDate: date("invoice_date").notNull(),
   revenueType: revenueTypeEnum("revenue_type").notNull(),
-  notes: text("notes"),
   tabsInvoiceId: text("tabs_invoice_id"), // Track invoices synced from Tabs
+  syncDetails: text("sync_details"), // Store Tabs sync metadata
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").notNull().references(() => users.id),
 });

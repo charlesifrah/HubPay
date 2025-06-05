@@ -227,8 +227,8 @@ class TabsApiService {
         amount: tabsInvoice.amount.toString(),
         invoiceDate: tabsInvoice.paid_date || tabsInvoice.invoice_date,
         revenueType: 'recurring' as const,
-        notes: `Synced from Tabs - ${tabsInvoice.invoice_number}${tabsInvoice.description ? ` - ${tabsInvoice.description}` : ''}`,
         tabsInvoiceId: tabsInvoice.id,
+        syncDetails: `Synced from Tabs - ${tabsInvoice.invoice_number}${tabsInvoice.description ? ` - ${tabsInvoice.description}` : ''}`,
         createdBy: createdBy || 5 // Use existing admin user if not provided
       };
       
