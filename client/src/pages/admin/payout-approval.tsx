@@ -303,31 +303,23 @@ export default function PayoutApproval() {
                       !locallyRejected.includes(commission.id)
                     )
                     .map((commission: Commission) => (
-                    <TableRow key={commission.id}>
+                    <TableRow key={commission.id} className="hover:bg-gray-50">
                       <TableCell>
-                        <div className="text-sm font-medium text-gray-900">{commission.aeName}</div>
+                        <div className="font-medium text-gray-900">{commission.aeName}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-gray-900">{commission.contractClientName}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="font-medium text-gray-900">{commission.contractClientName}</div>
+                        <div className="text-xs text-gray-500 mt-1">
                           <StatusBadge status={commission.contractType as any} />
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-gray-900">${Number(commission.invoiceAmount).toLocaleString()}</div>
-                        <div className="text-xs text-gray-500">INV-{commission.invoiceId}</div>
+                        <div className="font-semibold text-gray-900">${Number(commission.invoiceAmount).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1">INV-{commission.invoiceId}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium text-gray-900">${Number(commission.totalCommission).toLocaleString()}</div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="px-2 py-1 h-auto text-xs flex items-center mt-1 text-primary-700"
-                          onClick={() => setViewDetails(commission)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View Details
-                        </Button>
+                        <div className="font-semibold text-green-600">${Number(commission.totalCommission).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1">Base: ${Number(commission.baseCommission).toLocaleString()}</div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-gray-900">
