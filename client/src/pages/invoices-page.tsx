@@ -288,9 +288,9 @@ export default function InvoicesPage() {
                             <TableCell>
                               {isAdmin && (() => {
                                 // Check if this Tabs invoice is already synced
-                                const isAlreadySynced = invoices.some(inv => 
+                                const isAlreadySynced = invoices?.some(inv => 
                                   (inv as any).tabsInvoiceId === tabsInvoice.id
-                                );
+                                ) || false;
 
                                 if (isAlreadySynced) {
                                   return (
