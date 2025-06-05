@@ -60,6 +60,7 @@ export const invoices = pgTable("invoices", {
   invoiceDate: date("invoice_date").notNull(),
   revenueType: revenueTypeEnum("revenue_type").notNull(),
   notes: text("notes"),
+  tabsInvoiceId: text("tabs_invoice_id"), // Track invoices synced from Tabs
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").notNull().references(() => users.id),
 });

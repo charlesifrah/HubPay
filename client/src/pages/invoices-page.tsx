@@ -53,7 +53,10 @@ export default function InvoicesPage() {
   });
 
   // Fetch Tabs invoices
-  const { data: tabsData, isLoading: tabsLoading, error: tabsError } = useQuery({
+  const { data: tabsData, isLoading: tabsLoading, error: tabsError } = useQuery<{
+    data: TabsInvoice[];
+    pagination?: { page: number; per_page: number; total: number };
+  }>({
     queryKey: ["/api/tabs/invoices/paid"],
     enabled: !!user,
   });
@@ -126,7 +129,7 @@ export default function InvoicesPage() {
 
       <Tabs defaultValue="manual" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="manual">Manual Invoices</TabsTrigger>
+          <TabsTrigger value="manual">Invoices</TabsTrigger>
           <TabsTrigger value="tabs">Tabs Integration</TabsTrigger>
         </TabsList>
         
@@ -156,12 +159,13 @@ export default function InvoicesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Client</TableHead>
+                      <TableHead>Invoice Number</TableHead>
+                      <TableHead>Customer</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Revenue Type</TableHead>
-                      <TableHead>Account Executive</TableHead>
                       <TableHead>Invoice Date</TableHead>
-                      <TableHead>Uploaded</TableHead>
+                      <TableHead>Paid Date</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -169,8 +173,9 @@ export default function InvoicesPage() {
                     {invoices.map((invoice) => (
                       <TableRow key={invoice.id}>
                         <TableCell className="font-medium">
-                          {invoice.contractClientName}
+                          INV-{invoice.id.toString().padStart(4, '0')}
                         </TableCell>
+                        <TableCell>{invoice.contractClientName}</TableCell>
                         <TableCell>{formatCurrency(parseFloat(invoice.amount))}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={getRevenueTypeColor(invoice.revenueType)}>
@@ -179,14 +184,29 @@ export default function InvoicesPage() {
                             ).join(' ')}
                           </Badge>
                         </TableCell>
-                        <TableCell>{invoice.contractAEName}</TableCell>
                         <TableCell>{invoice.invoiceDate}</TableCell>
-                        <TableCell>{invoice.createdAt ? formatDate(new Date(invoice.createdAt)) : 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                            {formatDate(new Date(invoice.createdAt || invoice.invoiceDate))}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-green-100 text-green-800">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Processed
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           {invoice.notes ? (
                             <span className="text-sm text-gray-600">{invoice.notes}</span>
                           ) : (
                             <span className="text-xs text-gray-400">No notes</span>
+                          )}
+                          {(invoice as any).tabsInvoiceId && (
+                            <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-800">
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Tabs
+                            </Badge>
                           )}
                         </TableCell>
                       </TableRow>

@@ -173,8 +173,8 @@ class TabsApiService {
   }
 
   async syncInvoiceToDatabase(tabsInvoice: TabsInvoice, contractId?: number) {
-    // This would sync a Tabs invoice to our local database
-    // For now, we'll just log the operation
+    const { getStorage } = require('./storage');
+    
     console.log('Syncing Tabs invoice to database:', {
       tabsId: tabsInvoice.id,
       contractId,
@@ -182,9 +182,53 @@ class TabsApiService {
       customerName: tabsInvoice.customer_name
     });
     
-    // TODO: Implement actual database sync logic
-    // This would involve matching customer names to contracts
-    // and creating invoice records in our system
+    try {
+      // Try to find a matching contract by customer name if contractId not provided
+      let targetContractId = contractId;
+      
+      if (!targetContractId) {
+        const contracts = await getStorage().getAllContracts();
+        const matchingContract = contracts.find((contract: any) => 
+          contract.clientName.toLowerCase() === tabsInvoice.customer_name.toLowerCase()
+        );
+        
+        if (matchingContract) {
+          targetContractId = matchingContract.id;
+          console.log('Found matching contract:', matchingContract.id, 'for customer:', tabsInvoice.customer_name);
+        }
+      }
+      
+      if (!targetContractId) {
+        throw new Error(`No contract found for customer: ${tabsInvoice.customer_name}`);
+      }
+      
+      // Check if this Tabs invoice is already synced
+      const storage = getStorage();
+      const existingInvoices = await storage.getInvoicesWithDetails();
+      const alreadySynced = existingInvoices.find((inv: any) => inv.tabsInvoiceId === tabsInvoice.id);
+      
+      if (alreadySynced) {
+        throw new Error(`This invoice has already been synced (Invoice ID: ${alreadySynced.id})`);
+      }
+
+      // Create the invoice in our system
+      const invoiceData = {
+        contractId: targetContractId,
+        amount: tabsInvoice.amount.toString(),
+        invoiceDate: tabsInvoice.paid_date || tabsInvoice.invoice_date,
+        revenueType: 'recurring' as const,
+        notes: `Synced from Tabs - ${tabsInvoice.invoice_number}${tabsInvoice.description ? ` - ${tabsInvoice.description}` : ''}`,
+        tabsInvoiceId: tabsInvoice.id
+      };
+      
+      const createdInvoice = await getStorage().createInvoice(invoiceData);
+      console.log('Successfully synced Tabs invoice to database:', createdInvoice.id);
+      
+      return createdInvoice;
+    } catch (error) {
+      console.error('Error syncing Tabs invoice to database:', error);
+      throw error;
+    }
   }
 }
 
