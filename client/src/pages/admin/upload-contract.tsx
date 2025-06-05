@@ -359,28 +359,7 @@ export default function UploadContract() {
                 )}
               />
 
-              {/* Notes Textarea */}
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Additional Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Include any special terms or conditions that may affect commission calculations."
-                        className="resize-none"
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Include any special terms or conditions that may affect commission calculations.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               <div className="flex justify-end space-x-3">
                 <Button variant="outline" type="button">

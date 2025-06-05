@@ -354,28 +354,7 @@ export default function UploadInvoice() {
                     )}
                   />
 
-                  {/* Notes */}
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Include any details that may affect commission calculations."
-                            className="resize-none"
-                            rows={3}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Include any details that may affect commission calculations.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
 
                   {/* Commission Preview */}
                   <div className="border-t border-gray-200 pt-5">
