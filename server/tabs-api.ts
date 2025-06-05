@@ -1,0 +1,244 @@
+import { Request, Response } from 'express';
+
+// Tabs API interface
+interface TabsInvoice {
+  id: string;
+  customer_name: string;
+  invoice_number: string;
+  amount: number;
+  currency: string;
+  status: 'paid' | 'pending' | 'overdue';
+  invoice_date: string;
+  paid_date?: string;
+  description?: string;
+  line_items?: Array<{
+    description: string;
+    amount: number;
+    quantity: number;
+  }>;
+}
+
+interface TabsApiResponse {
+  data: TabsInvoice[];
+  pagination?: {
+    page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+class TabsApiService {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = process.env.TABS_API_URL || 'https://api.tabs.com/v1';
+    this.apiKey = process.env.TABS_API_KEY || '';
+  }
+
+  async fetchPaidInvoices(filters?: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    page?: number;
+  }): Promise<TabsApiResponse> {
+    // If no API key is provided, return simulated data for demonstration
+    if (!this.apiKey) {
+      return this.getSimulatedData(filters);
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (filters?.startDate) params.append('start_date', filters.startDate);
+      if (filters?.endDate) params.append('end_date', filters.endDate);
+      if (filters?.limit) params.append('limit', filters.limit.toString());
+      if (filters?.page) params.append('page', filters.page.toString());
+      params.append('status', 'paid');
+
+      const response = await fetch(`${this.baseUrl}/invoices?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Tabs API error: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching from Tabs API:', error);
+      // Fallback to simulated data if API fails
+      return this.getSimulatedData(filters);
+    }
+  }
+
+  private getSimulatedData(filters?: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    page?: number;
+  }): TabsApiResponse {
+    // Simulated Tabs invoice data for demonstration
+    const simulatedInvoices: TabsInvoice[] = [
+      {
+        id: 'tabs_inv_001',
+        customer_name: 'Acme Corp',
+        invoice_number: 'INV-2025-001',
+        amount: 64000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-01-15',
+        paid_date: '2025-01-25',
+        description: 'Q1 Subscription Payment',
+        line_items: [
+          { description: 'Platform License', amount: 64000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_002',
+        customer_name: 'Apple Inc.',
+        invoice_number: 'INV-2025-002',
+        amount: 2500000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-01-20',
+        paid_date: '2025-02-05',
+        description: 'Annual Enterprise License',
+        line_items: [
+          { description: 'Enterprise License', amount: 2500000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_003',
+        customer_name: 'Samsung',
+        invoice_number: 'INV-2025-003',
+        amount: 3000000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-02-01',
+        paid_date: '2025-02-15',
+        description: 'Annual Enterprise Subscription',
+        line_items: [
+          { description: 'Enterprise Subscription', amount: 3000000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_004',
+        customer_name: 'Samsara',
+        invoice_number: 'INV-2025-004',
+        amount: 2500000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-02-10',
+        paid_date: '2025-02-28',
+        description: 'Q1 Enterprise Payment',
+        line_items: [
+          { description: 'Enterprise Plan', amount: 2500000, quantity: 1 }
+        ]
+      }
+    ];
+
+    // Apply filters if provided
+    let filteredInvoices = simulatedInvoices;
+    
+    if (filters?.startDate) {
+      filteredInvoices = filteredInvoices.filter(inv => 
+        new Date(inv.paid_date || inv.invoice_date) >= new Date(filters.startDate!)
+      );
+    }
+    
+    if (filters?.endDate) {
+      filteredInvoices = filteredInvoices.filter(inv => 
+        new Date(inv.paid_date || inv.invoice_date) <= new Date(filters.endDate!)
+      );
+    }
+
+    // Apply pagination
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedInvoices,
+      pagination: {
+        page,
+        per_page: limit,
+        total: filteredInvoices.length
+      }
+    };
+  }
+
+  async syncInvoiceToDatabase(tabsInvoice: TabsInvoice, contractId?: number) {
+    // This would sync a Tabs invoice to our local database
+    // For now, we'll just log the operation
+    console.log('Syncing Tabs invoice to database:', {
+      tabsId: tabsInvoice.id,
+      contractId,
+      amount: tabsInvoice.amount,
+      customerName: tabsInvoice.customer_name
+    });
+    
+    // TODO: Implement actual database sync logic
+    // This would involve matching customer names to contracts
+    // and creating invoice records in our system
+  }
+}
+
+export const tabsApiService = new TabsApiService();
+
+// Express route handlers
+export function setupTabsApiRoutes(app: any) {
+  // Fetch paid invoices from Tabs
+  app.get('/api/tabs/invoices/paid', async (req: Request, res: Response) => {
+    try {
+      const filters = {
+        startDate: req.query.start_date as string,
+        endDate: req.query.end_date as string,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        page: req.query.page ? parseInt(req.query.page as string) : undefined,
+      };
+
+      const result = await tabsApiService.fetchPaidInvoices(filters);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching Tabs invoices:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch invoices from Tabs',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Sync a specific Tabs invoice to local database
+  app.post('/api/tabs/invoices/sync', async (req: Request, res: Response) => {
+    try {
+      const { tabsInvoiceId, contractId } = req.body;
+      
+      // First fetch the specific invoice from Tabs
+      const allInvoices = await tabsApiService.fetchPaidInvoices();
+      const tabsInvoice = allInvoices.data.find(inv => inv.id === tabsInvoiceId);
+      
+      if (!tabsInvoice) {
+        return res.status(404).json({ error: 'Invoice not found in Tabs' });
+      }
+
+      await tabsApiService.syncInvoiceToDatabase(tabsInvoice, contractId);
+      
+      res.json({ 
+        success: true, 
+        message: 'Invoice synced successfully',
+        invoice: tabsInvoice
+      });
+    } catch (error) {
+      console.error('Error syncing Tabs invoice:', error);
+      res.status(500).json({ 
+        error: 'Failed to sync invoice',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+}

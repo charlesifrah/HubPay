@@ -6,6 +6,7 @@ import { CommissionEngine } from "./commissionEngine";
 import { setupAEManagementRoutes } from "./ae-management";
 import { setupAdminManagementRoutes } from "./admin-management";
 import { clearDatabase } from "./clear-database";
+import { setupTabsApiRoutes } from "./tabs-api";
 import { z } from "zod";
 import { insertContractSchema, insertInvoiceSchema } from "@shared/schema";
 
@@ -36,6 +37,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Set up Admin management routes
   setupAdminManagementRoutes(app);
+  
+  // Set up Tabs API integration routes
+  setupTabsApiRoutes(app);
   
   // Database management API endpoint
   app.post("/api/admin/clear-database", clearDatabase);
