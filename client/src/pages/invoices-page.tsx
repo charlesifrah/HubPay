@@ -286,18 +286,34 @@ export default function InvoicesPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {isAdmin && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => syncTabsInvoiceMutation.mutate({
-                                    tabsInvoiceId: tabsInvoice.id
-                                  })}
-                                  disabled={syncTabsInvoiceMutation.isPending}
-                                >
-                                  {syncTabsInvoiceMutation.isPending ? 'Syncing...' : 'Sync to System'}
-                                </Button>
-                              )}
+                              {isAdmin && (() => {
+                                // Check if this Tabs invoice is already synced
+                                const isAlreadySynced = invoices.some(inv => 
+                                  (inv as any).tabsInvoiceId === tabsInvoice.id
+                                );
+
+                                if (isAlreadySynced) {
+                                  return (
+                                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Synced
+                                    </Badge>
+                                  );
+                                }
+
+                                return (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => syncTabsInvoiceMutation.mutate({
+                                      tabsInvoiceId: tabsInvoice.id
+                                    })}
+                                    disabled={syncTabsInvoiceMutation.isPending}
+                                  >
+                                    {syncTabsInvoiceMutation.isPending ? 'Syncing...' : 'Sync to System'}
+                                  </Button>
+                                );
+                              })()}
                             </TableCell>
                           </TableRow>
                         ))}
