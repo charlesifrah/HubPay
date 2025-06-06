@@ -186,7 +186,7 @@ export default function CommissionStatement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Deal Type</TableHead>
                   <TableHead>Invoice Amount</TableHead>
                   <TableHead>Base Commission</TableHead>
