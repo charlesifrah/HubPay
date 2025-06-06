@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Layout } from "@/components/layout/layout";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -69,6 +69,24 @@ export default function PayoutApproval() {
     commission: null
   });
   const [rejectionReason, setRejectionReason] = useState("");
+
+  // Contract type badge styling to match View Invoices
+  const getContractTypeColor = (type: string) => {
+    switch (type) {
+      case "new":
+        return "bg-green-100 text-green-800";
+      case "renewal":
+        return "bg-purple-100 text-purple-800";
+      case "upsell":
+        return "bg-blue-100 text-blue-800";
+      case "pilot":
+        return "bg-blue-100 text-blue-800";
+      case "multi-year":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   // Load AEs for filter dropdown
   const { data: aes = [] } = useQuery<any[]>({
@@ -310,7 +328,11 @@ export default function PayoutApproval() {
                       <TableCell>
                         <div className="font-medium text-gray-900">{commission.contractClientName}</div>
                         <div className="text-xs text-gray-500 mt-1">
-                          <StatusBadge status={commission.contractType as any} />
+                          <Badge variant="outline" className={getContractTypeColor(commission.contractType)}>
+                            {commission.contractType.split('-').map(word => 
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
+                          </Badge>
                         </div>
                       </TableCell>
                       <TableCell>

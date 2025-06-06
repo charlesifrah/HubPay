@@ -71,6 +71,24 @@ export default function PayoutsPage() {
   const [searchText, setSearchText] = useState<string>('');
   const [viewDetails, setViewDetails] = useState<Payout | null>(null);
 
+  // Contract type badge styling to match View Invoices
+  const getContractTypeColor = (type: string) => {
+    switch (type) {
+      case "new":
+        return "bg-green-100 text-green-800";
+      case "renewal":
+        return "bg-purple-100 text-purple-800";
+      case "upsell":
+        return "bg-blue-100 text-blue-800";
+      case "pilot":
+        return "bg-blue-100 text-blue-800";
+      case "multi-year":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   // Load AEs for filter dropdown
   const { data: aes = [] } = useQuery<any[]>({
     queryKey: ["/api/aes"],
@@ -219,8 +237,10 @@ export default function PayoutsPage() {
                       <TableCell>
                         <div className="font-medium text-gray-900">{payout.contractClientName}</div>
                         <div className="text-xs text-gray-500 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {payout.contractType}
+                          <Badge variant="outline" className={getContractTypeColor(payout.contractType)}>
+                            {payout.contractType.split('-').map(word => 
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
                           </Badge>
                         </div>
                       </TableCell>
@@ -250,7 +270,7 @@ export default function PayoutsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium text-sm">{payout.approvedByName}</div>
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100 mt-1">
+                        <Badge variant="outline" className="bg-green-100 text-green-800 mt-1">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Approved
                         </Badge>
