@@ -512,7 +512,7 @@ export default function AdminManagementPage() {
               </div>
             </div>
             
-            <Alert className="bg-blue-50 border-blue-200 w-full max-w-full mt-4">
+            <Alert className="bg-blue-100 border-blue-200 w-full max-w-full mt-4">
               <Info className="h-4 w-4 text-blue-500 shrink-0" />
               <div className="flex-1">
                 <AlertTitle>Important</AlertTitle>
@@ -747,7 +747,7 @@ export default function AdminManagementPage() {
                         <TableCell>
                           {admin.name}
                           {admin.isSelf && (
-                            <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="outline" className="ml-2 bg-blue-100 text-blue-800">
                               You
                             </Badge>
                           )}

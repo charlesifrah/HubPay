@@ -595,7 +595,7 @@ export default function AEManagementPage() {
                   </div>
                 </div>
                 
-                <Alert className="bg-blue-50 border-blue-200 w-full max-w-full">
+                <Alert className="bg-blue-100 border-blue-200 w-full max-w-full">
                   <Info className="h-4 w-4 text-blue-500 shrink-0" />
                   <div className="w-full">
                     <AlertTitle className="text-sm font-medium">What happens next</AlertTitle>
