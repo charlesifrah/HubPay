@@ -63,16 +63,16 @@ export default function AEDashboard() {
   const recentDeals: RecentDeal[] = !isLoading && !error && data?.recentDeals
     ? data.recentDeals.map((deal: any) => ({
         id: deal.id,
+        invoiceId: deal.invoiceId,
         client: deal.contractClientName,
         dealType: deal.contractType as any,
-        invoiceAmount: Number(deal.invoiceAmount).toLocaleString(),
-        commission: Number(deal.baseCommission).toLocaleString(),
-        bonuses: [
-          ...(Number(deal.pilotBonus) > 0 ? [{ amount: Number(deal.pilotBonus).toLocaleString(), type: 'pilot bonus' }] : []),
-          ...(Number(deal.multiYearBonus) > 0 ? [{ amount: Number(deal.multiYearBonus).toLocaleString(), type: 'multi-year bonus' }] : []),
-          ...(Number(deal.upfrontBonus) > 0 ? [{ amount: Number(deal.upfrontBonus).toLocaleString(), type: 'upfront bonus' }] : []),
-        ],
-        date: new Date(deal.createdAt).toLocaleDateString(),
+        invoiceAmount: deal.invoiceAmount,
+        totalCommission: deal.totalCommission,
+        baseCommission: deal.baseCommission,
+        pilotBonus: deal.pilotBonus,
+        multiYearBonus: deal.multiYearBonus,
+        upfrontBonus: deal.upfrontBonus,
+        dateApproved: deal.approvedAt || deal.createdAt,
         status: deal.status
       }))
     : [];

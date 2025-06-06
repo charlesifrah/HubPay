@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,21 +11,40 @@ import {
 
 export type RecentDeal = {
   id: number;
+  invoiceId: number;
   client: string;
   dealType: 'new' | 'renewal' | 'upsell' | 'pilot' | 'multi-year';
   invoiceAmount: string;
-  commission: string;
-  bonuses?: {
-    amount: string;
-    type: string;
-  }[];
-  date: string;
+  totalCommission: string;
+  baseCommission: string;
+  pilotBonus?: string;
+  multiYearBonus?: string;
+  upfrontBonus?: string;
+  dateApproved: string;
   status: 'pending' | 'approved' | 'paid' | 'rejected';
 };
 
 interface RecentDealsTableProps {
   deals: RecentDeal[];
 }
+
+// Helper function to get contract type color classes
+const getContractTypeColor = (type: string) => {
+  switch (type) {
+    case 'new':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'renewal':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'upsell':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'pilot':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'multi-year':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
 
 export function RecentDealsTable({ deals }: RecentDealsTableProps) {
   return (
@@ -33,9 +53,9 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Customer</TableHead>
-            <TableHead>Invoice Amount</TableHead>
+            <TableHead>Invoice</TableHead>
             <TableHead>Commission</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead>Date Approved</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -48,24 +68,44 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
             </TableRow>
           ) : (
             deals.map((deal) => (
-              <TableRow key={deal.id}>
+              <TableRow key={deal.id} className="hover:bg-gray-50">
                 <TableCell>
-                  <div className="text-sm font-medium text-gray-900">{deal.client}</div>
-                  <div className="text-xs text-gray-500">
-                    <StatusBadge status={deal.dealType} />
+                  <div className="font-medium text-gray-900">{deal.client}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    <Badge variant="outline" className={getContractTypeColor(deal.dealType)}>
+                      {deal.dealType.split('-').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
+                    </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-900">${deal.invoiceAmount}</div>
+                  <div className="font-semibold text-gray-900">${Number(deal.invoiceAmount).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1">INV-{deal.invoiceId}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-900">${deal.commission}</div>
-                  {deal.bonuses && deal.bonuses.map((bonus, idx) => (
-                    <div key={idx} className="text-xs text-green-600">+ ${bonus.amount} {bonus.type}</div>
-                  ))}
+                  <div className="font-semibold text-green-600">${Number(deal.totalCommission).toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                    <div>Base: ${Number(deal.baseCommission).toLocaleString()}</div>
+                    {deal.pilotBonus && Number(deal.pilotBonus) > 0 && (
+                      <div className="text-green-600">+ ${Number(deal.pilotBonus).toLocaleString()} pilot bonus</div>
+                    )}
+                    {deal.multiYearBonus && Number(deal.multiYearBonus) > 0 && (
+                      <div className="text-green-600">+ ${Number(deal.multiYearBonus).toLocaleString()} multi-year bonus</div>
+                    )}
+                    {deal.upfrontBonus && Number(deal.upfrontBonus) > 0 && (
+                      <div className="text-green-600">+ ${Number(deal.upfrontBonus).toLocaleString()} upfront bonus</div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-gray-900">{deal.date}</div>
+                  <div className="text-sm text-gray-900">
+                    {new Date(deal.dateApproved).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={deal.status} />
