@@ -214,7 +214,7 @@ export default function CommissionStatement() {
                     <TableRow key={commission.id}>
                       <TableCell>
                         <div className="text-sm font-medium text-gray-900">{commission.contractClientName}</div>
-                        <div className="text-xs text-gray-500">{new Date(commission.createdAt).toLocaleDateString()}</div>
+                        <div className="text-xs text-gray-500">{commission.createdAt ? new Date(commission.createdAt as string | Date).toLocaleDateString() : ''}</div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={commission.contractType as any} />
