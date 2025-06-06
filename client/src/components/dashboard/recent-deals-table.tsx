@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CheckCircle, Clock, XCircle, Banknote } from "lucide-react";
 
 export type RecentDeal = {
   id: number;
@@ -108,7 +109,30 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={deal.status} />
+                  {deal.status === 'pending' && (
+                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Pending
+                    </Badge>
+                  )}
+                  {deal.status === 'approved' && (
+                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Approved
+                    </Badge>
+                  )}
+                  {deal.status === 'paid' && (
+                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                      <Banknote className="h-3 w-3 mr-1" />
+                      Paid
+                    </Badge>
+                  )}
+                  {deal.status === 'rejected' && (
+                    <Badge variant="outline" className="bg-red-100 text-red-800">
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Rejected
+                    </Badge>
+                  )}
                 </TableCell>
               </TableRow>
             ))
