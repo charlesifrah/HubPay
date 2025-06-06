@@ -32,7 +32,7 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Client</TableHead>
+            <TableHead>Customer</TableHead>
             <TableHead>Invoice Amount</TableHead>
             <TableHead>Commission</TableHead>
             <TableHead>Date</TableHead>

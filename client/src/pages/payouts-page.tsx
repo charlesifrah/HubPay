@@ -207,7 +207,7 @@ export default function PayoutsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>AE</TableHead>
-                  <TableHead>Client</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Invoice</TableHead>
                   <TableHead>Commission</TableHead>
                   <TableHead>Date Approved</TableHead>

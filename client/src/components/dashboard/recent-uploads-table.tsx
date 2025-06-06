@@ -29,7 +29,7 @@ export function RecentUploadsTable({ uploads }: RecentUploadsTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Type</TableHead>
-            <TableHead>Client</TableHead>
+            <TableHead>Customer</TableHead>
             <TableHead>AE</TableHead>
             <TableHead>Value</TableHead>
             <TableHead>Uploaded</TableHead>

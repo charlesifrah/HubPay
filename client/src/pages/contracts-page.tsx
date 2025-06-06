@@ -163,7 +163,7 @@ export default function ContractsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>AE Name</TableHead>
                   <TableHead>Value</TableHead>
