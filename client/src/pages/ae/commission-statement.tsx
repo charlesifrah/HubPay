@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { StatusBadge } from "@/components/ui/status-badge";
+import type { CommissionWithDetails } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -91,13 +92,13 @@ export default function CommissionStatement() {
   const combinedFilters = { ...getDateFilters(), ...filters };
 
   // Load commissions with filters
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<CommissionWithDetails[]>({
     queryKey: [`/api/ae/commissions/${user?.id}`, combinedFilters],
     enabled: !!user?.id,
   });
 
   // Calculate pagination
-  const commissions = data || [];
+  const commissions: CommissionWithDetails[] = data || [];
   const totalCommissions = commissions.length;
   const totalPages = Math.ceil(totalCommissions / itemsPerPage);
   const paginatedCommissions = commissions.slice(
@@ -106,7 +107,7 @@ export default function CommissionStatement() {
   );
 
   // Calculate totals
-  const totalAmount = commissions.reduce((sum, commission) => sum + Number(commission.totalCommission), 0);
+  const totalAmount = commissions.reduce((sum: number, commission: CommissionWithDetails) => sum + Number(commission.totalCommission), 0);
 
   // Export functions (placeholder for now)
   const printStatement = () => {

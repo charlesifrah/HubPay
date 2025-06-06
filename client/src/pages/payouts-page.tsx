@@ -250,7 +250,18 @@ export default function PayoutsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="font-semibold text-green-600">${Number(payout.totalCommission).toLocaleString()}</div>
-                        <div className="text-xs text-gray-500 mt-1">Base: ${Number(payout.baseCommission).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                          <div>Base: ${Number(payout.baseCommission).toLocaleString()}</div>
+                          {Number(payout.pilotBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(payout.pilotBonus).toLocaleString()} pilot bonus</div>
+                          )}
+                          {Number(payout.multiYearBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(payout.multiYearBonus).toLocaleString()} multi-year bonus</div>
+                          )}
+                          {Number(payout.upfrontBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(payout.upfrontBonus).toLocaleString()} upfront bonus</div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-gray-900">

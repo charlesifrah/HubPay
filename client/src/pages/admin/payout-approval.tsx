@@ -341,7 +341,18 @@ export default function PayoutApproval() {
                       </TableCell>
                       <TableCell>
                         <div className="font-semibold text-green-600">${Number(commission.totalCommission).toLocaleString()}</div>
-                        <div className="text-xs text-gray-500 mt-1">Base: ${Number(commission.baseCommission).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                          <div>Base: ${Number(commission.baseCommission).toLocaleString()}</div>
+                          {Number(commission.pilotBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(commission.pilotBonus).toLocaleString()} pilot bonus</div>
+                          )}
+                          {Number(commission.multiYearBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(commission.multiYearBonus).toLocaleString()} multi-year bonus</div>
+                          )}
+                          {Number(commission.upfrontBonus) > 0 && (
+                            <div className="text-green-600">+ ${Number(commission.upfrontBonus).toLocaleString()} upfront bonus</div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-gray-900">
