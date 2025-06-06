@@ -74,17 +74,17 @@ export default function PayoutApproval() {
   const getContractTypeColor = (type: string) => {
     switch (type) {
       case "new":
-        return "bg-green-100 text-green-800";
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case "renewal":
-        return "bg-purple-100 text-purple-800";
+        return "bg-green-100 text-green-800 border-green-200";
       case "upsell":
-        return "bg-blue-100 text-blue-800";
+        return "bg-purple-100 text-purple-800 border-purple-200";
       case "pilot":
-        return "bg-blue-100 text-blue-800";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "multi-year":
-        return "bg-purple-100 text-purple-800";
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
