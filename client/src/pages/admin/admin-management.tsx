@@ -679,7 +679,7 @@ export default function AdminManagementPage() {
                   </Button>
                 </div>
                 
-                <Alert className="bg-blue-50 border-blue-200">
+                <Alert className="bg-blue-100 border-blue-200">
                   <Info className="h-4 w-4 text-blue-500" />
                   <AlertTitle>Important</AlertTitle>
                   <AlertDescription>
