@@ -42,6 +42,8 @@ function Router() {
       <ProtectedRoute path="/admin/payout-approval" component={PayoutApproval} adminOnly={true} />
       <ProtectedRoute path="/admin/reports" component={Reports} adminOnly={true} />
       <ProtectedRoute path="/admin/contracts" component={ContractsPage} adminOnly={true} />
+      <ProtectedRoute path="/admin/commission-configs" component={CommissionConfigs} adminOnly={true} />
+      <ProtectedRoute path="/admin/ae-assignments" component={AEAssignments} adminOnly={true} />
       
       {/* AE Routes */}
       <ProtectedRoute path="/ae/dashboard" component={AEDashboard} />

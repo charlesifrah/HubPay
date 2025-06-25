@@ -86,6 +86,24 @@ export interface IStorage {
     contractType?: string
   }): Promise<any>;
 
+  // Commission Configuration operations
+  createCommissionConfig(config: any): Promise<any>;
+  getCommissionConfig(id: number): Promise<any>;
+  getAllCommissionConfigs(): Promise<any[]>;
+  updateCommissionConfig(id: number, updates: any): Promise<any>;
+  deleteCommissionConfig(id: number): Promise<void>;
+  
+  // AE Commission Assignment operations
+  assignCommissionConfig(assignment: any): Promise<any>;
+  getActiveCommissionConfigForAE(aeId: number): Promise<any>;
+  getCommissionAssignmentsForAE(aeId: number): Promise<any[]>;
+  updateCommissionAssignment(id: number, updates: any): Promise<any>;
+
+  // Additional missing methods
+  getInvoicesForContract(contractId: number): Promise<any[]>;
+  deleteContract(id: number): Promise<void>;
+  getMonthlyCommissionsForAE(aeId: number, months: number): Promise<any[]>;
+
   // Session store
   sessionStore: session.SessionStore;
 }
@@ -816,6 +834,82 @@ export class MemStorage implements IStorage {
   
   async getAllInvitations(): Promise<any[]> {
     return Array.from(this.invitations.values());
+  }
+
+  // Commission Configuration stub methods
+  async createCommissionConfig(config: any): Promise<any> {
+    throw new Error("Commission configs not supported in memory storage");
+  }
+
+  async getCommissionConfig(id: number): Promise<any> {
+    throw new Error("Commission configs not supported in memory storage");
+  }
+
+  async getAllCommissionConfigs(): Promise<any[]> {
+    return [];
+  }
+
+  async updateCommissionConfig(id: number, updates: any): Promise<any> {
+    throw new Error("Commission configs not supported in memory storage");
+  }
+
+  async deleteCommissionConfig(id: number): Promise<void> {
+    throw new Error("Commission configs not supported in memory storage");
+  }
+
+  // AE Commission Assignment stub methods
+  async assignCommissionConfig(assignment: any): Promise<any> {
+    throw new Error("Commission assignments not supported in memory storage");
+  }
+
+  async getActiveCommissionConfigForAE(aeId: number): Promise<any> {
+    return null;
+  }
+
+  async getCommissionAssignmentsForAE(aeId: number): Promise<any[]> {
+    return [];
+  }
+
+  async updateCommissionAssignment(id: number, updates: any): Promise<any> {
+    throw new Error("Commission assignments not supported in memory storage");
+  }
+
+  // Additional missing methods
+  async getInvoicesForContract(contractId: number): Promise<any[]> {
+    return Array.from(this.invoices.values()).filter(invoice => invoice.contractId === contractId);
+  }
+
+  async deleteContract(id: number): Promise<void> {
+    this.contracts.delete(id);
+  }
+
+  async getMonthlyCommissionsForAE(aeId: number, months: number): Promise<any[]> {
+    // Return mock monthly data for memory storage
+    const monthlyData = [];
+    const today = new Date();
+    
+    for (let i = months - 1; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      
+      // Calculate commission for this month (simplified)
+      const commissions = Array.from(this.commissions.values())
+        .filter(c => c.aeId === aeId)
+        .filter(c => {
+          const commissionDate = new Date(c.createdAt);
+          return commissionDate.getMonth() === date.getMonth() && 
+                 commissionDate.getFullYear() === date.getFullYear();
+        });
+      
+      const totalCommission = commissions.reduce((sum, c) => sum + Number(c.totalCommission), 0);
+      
+      monthlyData.push({
+        name: monthName,
+        commission: totalCommission
+      });
+    }
+    
+    return monthlyData;
   }
 }
 

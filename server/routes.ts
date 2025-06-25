@@ -741,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!aeId) {
         return res.status(400).json({ error: "AE ID is required" });
       }
-      const config = await storage.getActiveCommissionConfigForAE(aeId);
+      const config = await getStorage().getActiveCommissionConfigForAE(aeId);
       res.json(config || null);
     } catch (error) {
       console.error("Error fetching active commission config:", error);
