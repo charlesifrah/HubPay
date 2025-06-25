@@ -365,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Approve Commission (with Tabs payout integration)
+  // Approve Commission (with email notification)
   app.patch("/api/admin/commissions/:id/approve", async (req, res) => {
     try {
       const commissionId = parseInt(req.params.id);
@@ -383,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const ae = contract ? await getStorage().getUser(contract.aeId) : null;
 
       if (!invoice || !contract || !ae) {
-        return res.status(400).json({ message: "Missing required data for payout" });
+        return res.status(400).json({ message: "Missing required data for approval" });
       }
 
       // Update commission status to approved
@@ -393,38 +393,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         adminId
       );
 
-      // Initiate Tabs payout
+      // Send email notification to admin
       try {
-        const { tabsPayoutService } = await import('./tabs-api');
+        const admin = await getStorage().getUser(adminId);
         
-        const payoutResponse = await tabsPayoutService.initiateCommissionPayout({
-          aeEmail: ae.email,
-          amount: parseFloat(commission.totalCommission),
-          currency: 'USD',
-          commissionId: commissionId,
-          description: `Commission payout for ${contract.clientName} - Invoice ${invoice.invoiceDate}`
-        });
+        if (admin) {
+          const { emailNotificationService } = await import('./tabs-api');
+          await emailNotificationService.sendPayoutApprovalNotification({
+            commissionId: commissionId,
+            aeName: ae.name,
+            aeEmail: ae.email,
+            amount: commission.totalCommission,
+            contractClient: contract.clientName,
+            adminEmail: admin.email
+          });
 
-        console.log('Tabs payout initiated:', payoutResponse);
+          console.log('Email notification sent to admin:', admin.email);
+        }
 
         res.json({
-          message: "Commission approved and payout initiated successfully",
-          commission: updatedCommission,
-          payout: {
-            payoutId: payoutResponse.payoutId,
-            status: payoutResponse.status,
-            message: payoutResponse.message,
-            estimatedProcessingTime: payoutResponse.estimatedProcessingTime
-          }
+          message: "Commission approved and notification sent successfully",
+          commission: updatedCommission
         });
-      } catch (payoutError) {
-        console.error('Error initiating Tabs payout:', payoutError);
+      } catch (emailError) {
+        console.error('Error sending email notification:', emailError);
         
-        // Commission is still approved even if payout fails
+        // Commission is still approved even if email fails
         res.json({
-          message: "Commission approved but payout initiation failed",
+          message: "Commission approved but email notification failed",
           commission: updatedCommission,
-          payoutError: payoutError instanceof Error ? payoutError.message : 'Unknown payout error'
+          emailError: emailError instanceof Error ? emailError.message : 'Unknown email error'
         });
       }
     } catch (error) {

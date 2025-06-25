@@ -245,88 +245,89 @@ class TabsApiService {
 
 export const tabsApiService = new TabsApiService();
 
-// Payout interface for Tabs API
-interface TabsPayoutRequest {
-  aeEmail: string;
-  amount: number;
-  currency: string;
-  commissionId: number;
-  description: string;
-}
+// Email notification service for payout approvals
+import { MailService } from '@sendgrid/mail';
 
-interface TabsPayoutResponse {
-  payoutId: string;
-  status: 'initiated' | 'processing' | 'completed' | 'failed';
-  message: string;
-  estimatedProcessingTime?: string;
-}
-
-// Extend TabsApiService with payout functionality
-class TabsPayoutService {
-  private baseUrl: string;
-  private apiKey: string;
+class EmailNotificationService {
+  private mailService: MailService;
+  private isConfigured: boolean;
 
   constructor() {
-    this.baseUrl = process.env.TABS_API_URL || 'https://api.tabs.com';
-    this.apiKey = process.env.TABS_API_KEY || 'simulated_key';
+    this.mailService = new MailService();
+    this.isConfigured = !!process.env.SENDGRID_API_KEY;
+    
+    if (this.isConfigured) {
+      this.mailService.setApiKey(process.env.SENDGRID_API_KEY!);
+    }
   }
 
-  async initiateCommissionPayout(payoutRequest: TabsPayoutRequest): Promise<TabsPayoutResponse> {
-    console.log('Initiating Tabs payout:', payoutRequest);
-
-    // For now, simulate the API call
-    if (!process.env.TABS_API_KEY || this.apiKey === 'simulated_key') {
-      // Simulate successful payout initiation
-      return this.getSimulatedPayoutResponse(payoutRequest);
+  async sendPayoutApprovalNotification(payoutDetails: {
+    commissionId: number;
+    aeName: string;
+    aeEmail: string;
+    amount: string;
+    contractClient: string;
+    adminEmail: string;
+  }): Promise<boolean> {
+    if (!this.isConfigured) {
+      console.log('SendGrid not configured, simulating email notification:', payoutDetails);
+      return true;
     }
 
     try {
-      // Real API call would go here
-      const response = await fetch(`${this.baseUrl}/payouts`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payoutRequest),
-      });
+      const emailContent = {
+        to: payoutDetails.adminEmail,
+        from: process.env.FROM_EMAIL || 'noreply@company.com',
+        subject: `Payout Approved - Action Required: Pay ${payoutDetails.aeName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Commission Payout Approved</h2>
+            <p>A commission has been approved and requires payment processing:</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #495057;">Payout Details</h3>
+              <ul style="list-style: none; padding: 0;">
+                <li><strong>Commission ID:</strong> ${payoutDetails.commissionId}</li>
+                <li><strong>Account Executive:</strong> ${payoutDetails.aeName}</li>
+                <li><strong>AE Email:</strong> ${payoutDetails.aeEmail}</li>
+                <li><strong>Payout Amount:</strong> $${parseFloat(payoutDetails.amount).toLocaleString()}</li>
+                <li><strong>Contract Client:</strong> ${payoutDetails.contractClient}</li>
+              </ul>
+            </div>
+            
+            <p><strong>Action Required:</strong> Please process the payment to the Account Executive through your preferred payment method.</p>
+            
+            <p style="color: #6c757d; font-size: 14px;">
+              This is an automated notification from the Sales Commission Management System.
+            </p>
+          </div>
+        `,
+        text: `
+Commission Payout Approved - Action Required
 
-      if (!response.ok) {
-        throw new Error(`Tabs API error: ${response.status} ${response.statusText}`);
-      }
+A commission has been approved and requires payment processing:
 
-      return await response.json();
+Commission ID: ${payoutDetails.commissionId}
+Account Executive: ${payoutDetails.aeName}
+AE Email: ${payoutDetails.aeEmail}
+Payout Amount: $${parseFloat(payoutDetails.amount).toLocaleString()}
+Contract Client: ${payoutDetails.contractClient}
+
+Action Required: Please process the payment to the Account Executive through your preferred payment method.
+        `
+      };
+
+      await this.mailService.send(emailContent);
+      console.log('Payout approval notification sent successfully');
+      return true;
     } catch (error) {
-      console.error('Error calling Tabs payout API:', error);
-      throw new Error('Failed to initiate payout with Tabs');
+      console.error('Error sending payout approval notification:', error);
+      return false;
     }
-  }
-
-  private getSimulatedPayoutResponse(payoutRequest: TabsPayoutRequest): TabsPayoutResponse {
-    // Simulate various payout scenarios
-    const scenarios = [
-      {
-        payoutId: `tabs_payout_${Date.now()}`,
-        status: 'initiated' as const,
-        message: 'Payout successfully initiated. Processing will begin within 24 hours.',
-        estimatedProcessingTime: '1-3 business days'
-      },
-      {
-        payoutId: `tabs_payout_${Date.now()}`,
-        status: 'processing' as const,
-        message: 'Payout is being processed by our payment system.',
-        estimatedProcessingTime: '2-3 business days'
-      }
-    ];
-
-    const selectedScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-    
-    console.log('Simulated Tabs payout response:', selectedScenario);
-    return selectedScenario;
   }
 }
 
-export const tabsPayoutService = new TabsPayoutService();
+export const emailNotificationService = new EmailNotificationService();
 
 // Express route handlers
 export function setupTabsApiRoutes(app: any) {
@@ -380,32 +381,5 @@ export function setupTabsApiRoutes(app: any) {
     }
   });
 
-  // Initiate payout via Tabs
-  app.post('/api/tabs/payouts/initiate', async (req: Request, res: Response) => {
-    try {
-      const { commissionId, aeEmail, amount, description } = req.body;
-      
-      const payoutRequest: TabsPayoutRequest = {
-        aeEmail,
-        amount: parseFloat(amount),
-        currency: 'USD',
-        commissionId,
-        description: description || `Commission payout for commission ID: ${commissionId}`
-      };
 
-      const payoutResponse = await tabsPayoutService.initiateCommissionPayout(payoutRequest);
-      
-      res.json({ 
-        success: true, 
-        payout: payoutResponse,
-        message: 'Payout initiated successfully with Tabs'
-      });
-    } catch (error) {
-      console.error('Error initiating Tabs payout:', error);
-      res.status(500).json({ 
-        error: 'Failed to initiate payout',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
 }
