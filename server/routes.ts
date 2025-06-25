@@ -650,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         createdBy: req.user?.id
       });
-      const config = await storage.createCommissionConfig(validatedData);
+      const config = await getStorage().createCommissionConfig(validatedData);
       res.status(201).json(config);
     } catch (error) {
       console.error("Error creating commission config:", error);
@@ -660,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/commission-configs", adminOnly, async (req: Request, res: Response) => {
     try {
-      const configs = await storage.getAllCommissionConfigs();
+      const configs = await getStorage().getAllCommissionConfigs();
       res.json(configs);
     } catch (error) {
       console.error("Error fetching commission configs:", error);
@@ -671,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/commission-configs/:id", adminOnly, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const config = await storage.getCommissionConfig(id);
+      const config = await getStorage().getCommissionConfig(id);
       if (!config) {
         return res.status(404).json({ error: "Commission configuration not found" });
       }
@@ -689,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         updatedBy: req.user?.id
       };
-      const config = await storage.updateCommissionConfig(id, updates);
+      const config = await getStorage().updateCommissionConfig(id, updates);
       res.json(config);
     } catch (error) {
       console.error("Error updating commission config:", error);
@@ -700,7 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/commission-configs/:id", adminOnly, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      await storage.deleteCommissionConfig(id);
+      await getStorage().deleteCommissionConfig(id);
       res.sendStatus(204);
     } catch (error) {
       console.error("Error deleting commission config:", error);
@@ -716,7 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         createdBy: req.user?.id
       });
-      const assignment = await storage.assignCommissionConfig(validatedData);
+      const assignment = await getStorage().assignCommissionConfig(validatedData);
       res.status(201).json(assignment);
     } catch (error) {
       console.error("Error creating commission assignment:", error);
@@ -727,7 +727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/ae-commission-assignments/:aeId", adminOnly, async (req: Request, res: Response) => {
     try {
       const aeId = parseInt(req.params.aeId);
-      const assignments = await storage.getCommissionAssignmentsForAE(aeId);
+      const assignments = await getStorage().getCommissionAssignmentsForAE(aeId);
       res.json(assignments);
     } catch (error) {
       console.error("Error fetching commission assignments:", error);
