@@ -1,9 +1,9 @@
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { LoginUser, InsertUser, User, InsertContract, Contract, Invoice, InsertInvoice, Commission, InsertCommission, ContractWithAE, InvoiceWithDetails, CommissionWithDetails } from "@shared/schema";
+import { LoginUser, InsertUser, User, InsertContract, Contract, Invoice, InsertInvoice, Commission, InsertCommission, ContractWithAE, InvoiceWithDetails, CommissionWithDetails, CommissionConfig, InsertCommissionConfig, AeCommissionAssignment, InsertAeCommissionAssignment } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, SQL, or } from "drizzle-orm";
-import { users, contracts, invoices, commissions, invitations } from "@shared/schema";
+import { users, contracts, invoices, commissions, invitations, commissionConfigs, aeCommissionAssignments } from "@shared/schema";
 import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
@@ -91,6 +91,19 @@ export interface IStorage {
     maxValue?: number,
     contractType?: string
   }): Promise<any>;
+
+  // Commission Configuration operations
+  createCommissionConfig(config: InsertCommissionConfig): Promise<CommissionConfig>;
+  getCommissionConfig(id: number): Promise<CommissionConfig | undefined>;
+  getAllCommissionConfigs(): Promise<CommissionConfig[]>;
+  updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig>;
+  deleteCommissionConfig(id: number): Promise<void>;
+  
+  // AE Commission Assignment operations
+  assignCommissionConfig(assignment: InsertAeCommissionAssignment): Promise<AeCommissionAssignment>;
+  getActiveCommissionConfigForAE(aeId: number): Promise<CommissionConfig | undefined>;
+  getCommissionAssignmentsForAE(aeId: number): Promise<AeCommissionAssignment[]>;
+  updateCommissionAssignment(id: number, updates: Partial<AeCommissionAssignment>): Promise<AeCommissionAssignment>;
 
   // Session store
   sessionStore: any; // Using any because SessionStore type has issues
