@@ -970,4 +970,79 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Commission Configuration operations
+  async createCommissionConfig(config: InsertCommissionConfig): Promise<CommissionConfig> {
+    const [newConfig] = await db.insert(commissionConfigs).values(config).returning();
+    return newConfig;
+  }
+
+  async getCommissionConfig(id: number): Promise<CommissionConfig | undefined> {
+    const [config] = await db.select().from(commissionConfigs).where(eq(commissionConfigs.id, id));
+    return config || undefined;
+  }
+
+  async getAllCommissionConfigs(): Promise<CommissionConfig[]> {
+    return db.select().from(commissionConfigs).orderBy(desc(commissionConfigs.createdAt));
+  }
+
+  async updateCommissionConfig(id: number, updates: Partial<CommissionConfig>): Promise<CommissionConfig> {
+    const [updatedConfig] = await db
+      .update(commissionConfigs)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(commissionConfigs.id, id))
+      .returning();
+    return updatedConfig;
+  }
+
+  async deleteCommissionConfig(id: number): Promise<void> {
+    await db.delete(commissionConfigs).where(eq(commissionConfigs.id, id));
+  }
+
+  // AE Commission Assignment operations
+  async assignCommissionConfig(assignment: InsertAeCommissionAssignment): Promise<AeCommissionAssignment> {
+    const [newAssignment] = await db.insert(aeCommissionAssignments).values(assignment).returning();
+    return newAssignment;
+  }
+
+  async getActiveCommissionConfigForAE(aeId: number): Promise<CommissionConfig | undefined> {
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    const [assignment] = await db
+      .select({
+        config: commissionConfigs
+      })
+      .from(aeCommissionAssignments)
+      .leftJoin(commissionConfigs, eq(aeCommissionAssignments.commissionConfigId, commissionConfigs.id))
+      .where(
+        and(
+          eq(aeCommissionAssignments.aeId, aeId),
+          lte(aeCommissionAssignments.effectiveDate, currentDate),
+          or(
+            eq(aeCommissionAssignments.endDate, null),
+            gte(aeCommissionAssignments.endDate, currentDate)
+          )
+        )
+      )
+      .orderBy(desc(aeCommissionAssignments.effectiveDate));
+
+    return assignment?.config || undefined;
+  }
+
+  async getCommissionAssignmentsForAE(aeId: number): Promise<AeCommissionAssignment[]> {
+    return db
+      .select()
+      .from(aeCommissionAssignments)
+      .where(eq(aeCommissionAssignments.aeId, aeId))
+      .orderBy(desc(aeCommissionAssignments.effectiveDate));
+  }
+
+  async updateCommissionAssignment(id: number, updates: Partial<AeCommissionAssignment>): Promise<AeCommissionAssignment> {
+    const [updatedAssignment] = await db
+      .update(aeCommissionAssignments)
+      .set(updates)
+      .where(eq(aeCommissionAssignments.id, id))
+      .returning();
+    return updatedAssignment;
+  }
 }

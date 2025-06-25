@@ -28,6 +28,33 @@ declare global {
   }
 }
 
+// Middleware functions
+const adminOnly = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = req.user as any;
+  if (!user || user.role !== 'admin') {
+    return res.status(403).json({ message: "Forbidden - Admin access required" });
+  }
+
+  next();
+};
+
+const aeOrAdminOnly = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = req.user as any;
+  if (!user || (user.role !== 'admin' && user.role !== 'ae')) {
+    return res.status(403).json({ message: "Forbidden - AE or Admin access required" });
+  }
+
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes and middleware
   setupAuth(app);
@@ -612,6 +639,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ message: "Server error updating profile" });
+    }
+  });
+
+  // Commission Configuration endpoints
+  app.post("/api/admin/commission-configs", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const { insertCommissionConfigSchema } = await import("@shared/schema");
+      const validatedData = insertCommissionConfigSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id
+      });
+      const config = await storage.createCommissionConfig(validatedData);
+      res.status(201).json(config);
+    } catch (error) {
+      console.error("Error creating commission config:", error);
+      res.status(400).json({ error: "Failed to create commission configuration" });
+    }
+  });
+
+  app.get("/api/admin/commission-configs", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const configs = await storage.getAllCommissionConfigs();
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching commission configs:", error);
+      res.status(500).json({ error: "Failed to fetch commission configurations" });
+    }
+  });
+
+  app.get("/api/admin/commission-configs/:id", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const config = await storage.getCommissionConfig(id);
+      if (!config) {
+        return res.status(404).json({ error: "Commission configuration not found" });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching commission config:", error);
+      res.status(500).json({ error: "Failed to fetch commission configuration" });
+    }
+  });
+
+  app.put("/api/admin/commission-configs/:id", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = {
+        ...req.body,
+        updatedBy: req.user?.id
+      };
+      const config = await storage.updateCommissionConfig(id, updates);
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating commission config:", error);
+      res.status(400).json({ error: "Failed to update commission configuration" });
+    }
+  });
+
+  app.delete("/api/admin/commission-configs/:id", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCommissionConfig(id);
+      res.sendStatus(204);
+    } catch (error) {
+      console.error("Error deleting commission config:", error);
+      res.status(500).json({ error: "Failed to delete commission configuration" });
+    }
+  });
+
+  // AE Commission Assignment endpoints
+  app.post("/api/admin/ae-commission-assignments", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const { insertAeCommissionAssignmentSchema } = await import("@shared/schema");
+      const validatedData = insertAeCommissionAssignmentSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id
+      });
+      const assignment = await storage.assignCommissionConfig(validatedData);
+      res.status(201).json(assignment);
+    } catch (error) {
+      console.error("Error creating commission assignment:", error);
+      res.status(400).json({ error: "Failed to assign commission configuration" });
+    }
+  });
+
+  app.get("/api/admin/ae-commission-assignments/:aeId", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const aeId = parseInt(req.params.aeId);
+      const assignments = await storage.getCommissionAssignmentsForAE(aeId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching commission assignments:", error);
+      res.status(500).json({ error: "Failed to fetch commission assignments" });
+    }
+  });
+
+  app.get("/api/ae/commission-config", aeOrAdminOnly, async (req: Request, res: Response) => {
+    try {
+      const aeId = req.user?.role === 'admin' ? parseInt(req.query.aeId as string) : req.user?.id;
+      if (!aeId) {
+        return res.status(400).json({ error: "AE ID is required" });
+      }
+      const config = await storage.getActiveCommissionConfigForAE(aeId);
+      res.json(config || null);
+    } catch (error) {
+      console.error("Error fetching active commission config:", error);
+      res.status(500).json({ error: "Failed to fetch commission configuration" });
     }
   });
 

@@ -19,6 +19,8 @@ import PayoutApproval from "@/pages/admin/payout-approval";
 import Reports from "@/pages/admin/reports";
 import AEManagement from "@/pages/admin/ae-management";
 import AdminManagement from "@/pages/admin/admin-management";
+import CommissionConfigs from "@/pages/admin/commission-configs";
+import AEAssignments from "@/pages/admin/ae-assignments";
 
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";
