@@ -46,7 +46,7 @@ This is a full-stack sales commission management system built with React, Expres
 - Invoice creation linked to contracts
 - Revenue type classification (recurring, non-recurring, service)
 - Automatic commission calculation triggers
-- Integration ready for external systems (Tabs API)
+- Tabs API integration for invoice synchronization
 
 ### Commission Engine
 - Automated commission calculations based on business rules
@@ -109,9 +109,23 @@ This is a full-stack sales commission management system built with React, Expres
 - Schema defined in `./shared/schema.ts`
 - Push-based deployment with `db:push` command
 
+## External Integrations
+
+### Tabs API Integration
+- **Invoice Synchronization**: Automatically pulls paid customer invoices from Tabs revenue automation platform
+- **Data Mapping**: Maps Tabs invoice data to internal commission structures with sync tracking
+- **Authentication**: Uses API key authentication (TABS_API_KEY environment variable)
+- **Simulation Mode**: Functions with realistic mock responses when API credentials unavailable
+
+### Email Notifications
+- **Payout Approval Alerts**: Admin receives email notifications when commissions are approved for payment
+- **SendGrid Integration**: Uses SendGrid service for reliable email delivery
+- **Fallback Handling**: Logs notifications when SendGrid unavailable, ensuring commission approval continues
+
 ## Changelog
 
 - June 25, 2025. Initial setup
+- June 25, 2025. Modified Tabs integration: Removed payout processing, added email notifications for approved payouts
 
 ## User Preferences
 
