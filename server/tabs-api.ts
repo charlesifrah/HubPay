@@ -235,6 +235,18 @@ class TabsApiService {
       const createdInvoice = await storage.createInvoice(invoiceData);
       console.log('Successfully synced Tabs invoice to database:', createdInvoice.id);
       
+      // Calculate and create commission for the synced invoice
+      try {
+        const { CommissionEngine } = await import('./commissionEngine');
+        const commissionEngine = CommissionEngine.getInstance();
+        const commissionData = await commissionEngine.calculateCommission(createdInvoice);
+        const commission = await storage.createCommission(commissionData);
+        console.log('Commission created for synced invoice:', commission.id);
+      } catch (commissionError) {
+        console.error('Error creating commission for synced invoice:', commissionError);
+        // Continue without failing the sync if commission creation fails
+      }
+      
       return createdInvoice;
     } catch (error) {
       console.error('Error syncing Tabs invoice to database:', error);
