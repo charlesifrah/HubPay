@@ -174,7 +174,7 @@ export default function PayoutsPage() {
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
               <Input
-                placeholder="Search by client..."
+                placeholder="Search by customer..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 className="max-w-sm"
