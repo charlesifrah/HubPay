@@ -148,6 +148,230 @@ class TabsApiService {
         line_items: [
           { description: 'Enterprise Plan', amount: 2500000, quantity: 1 }
         ]
+      },
+      {
+        id: 'tabs_inv_005',
+        customer_name: 'Microsoft Corporation',
+        invoice_number: 'INV-2025-005',
+        amount: 1800000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-03-01',
+        paid_date: '2025-03-10',
+        description: 'Q1 Professional Services',
+        line_items: [
+          { description: 'Professional Services Package', amount: 1800000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_006',
+        customer_name: 'Tesla Inc.',
+        invoice_number: 'INV-2025-006',
+        amount: 950000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-03-05',
+        paid_date: '2025-03-15',
+        description: 'Monthly Enterprise License',
+        line_items: [
+          { description: 'Enterprise License - March', amount: 950000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_007',
+        customer_name: 'Netflix Inc.',
+        invoice_number: 'INV-2025-007',
+        amount: 750000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-03-10',
+        paid_date: '2025-03-20',
+        description: 'Quarterly Platform Subscription',
+        line_items: [
+          { description: 'Platform Subscription Q1', amount: 750000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_008',
+        customer_name: 'Amazon Web Services',
+        invoice_number: 'INV-2025-008',
+        amount: 2200000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-03-15',
+        paid_date: '2025-03-25',
+        description: 'Annual Enterprise Partnership',
+        line_items: [
+          { description: 'Enterprise Partnership License', amount: 2200000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_009',
+        customer_name: 'Stripe Inc.',
+        invoice_number: 'INV-2025-009',
+        amount: 480000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-04-01',
+        paid_date: '2025-04-08',
+        description: 'API Integration Package',
+        line_items: [
+          { description: 'API Integration & Support', amount: 480000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_010',
+        customer_name: 'Shopify Inc.',
+        invoice_number: 'INV-2025-010',
+        amount: 620000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-04-05',
+        paid_date: '2025-04-12',
+        description: 'Monthly Professional License',
+        line_items: [
+          { description: 'Professional License - April', amount: 620000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_011',
+        customer_name: 'Zoom Video Communications',
+        invoice_number: 'INV-2025-011',
+        amount: 1100000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-04-10',
+        paid_date: '2025-04-18',
+        description: 'Enterprise Communication Suite',
+        line_items: [
+          { description: 'Communication Platform License', amount: 1100000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_012',
+        customer_name: 'Salesforce Inc.',
+        invoice_number: 'INV-2025-012',
+        amount: 3500000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-04-15',
+        paid_date: '2025-04-25',
+        description: 'Multi-Year Enterprise Agreement',
+        line_items: [
+          { description: 'Enterprise Agreement Year 1', amount: 3500000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_013',
+        customer_name: 'Meta Platforms Inc.',
+        invoice_number: 'INV-2025-013',
+        amount: 1750000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-05-01',
+        paid_date: '2025-05-10',
+        description: 'Social Media Integration Package',
+        line_items: [
+          { description: 'Social Platform Integration', amount: 1750000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_014',
+        customer_name: 'Adobe Inc.',
+        invoice_number: 'INV-2025-014',
+        amount: 890000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-05-05',
+        paid_date: '2025-05-15',
+        description: 'Creative Suite Integration',
+        line_items: [
+          { description: 'Creative Suite API License', amount: 890000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_015',
+        customer_name: 'Uber Technologies',
+        invoice_number: 'INV-2025-015',
+        amount: 1300000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-05-10',
+        paid_date: '2025-05-20',
+        description: 'Mobility Platform License',
+        line_items: [
+          { description: 'Mobility Integration Platform', amount: 1300000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_016',
+        customer_name: 'Airbnb Inc.',
+        invoice_number: 'INV-2025-016',
+        amount: 840000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-05-15',
+        paid_date: '2025-05-25',
+        description: 'Hospitality Platform Integration',
+        line_items: [
+          { description: 'Hospitality API License', amount: 840000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_017',
+        customer_name: 'Slack Technologies',
+        invoice_number: 'INV-2025-017',
+        amount: 720000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-06-01',
+        paid_date: '2025-06-08',
+        description: 'Workplace Collaboration Suite',
+        line_items: [
+          { description: 'Collaboration Platform License', amount: 720000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_018',
+        customer_name: 'GitHub Inc.',
+        invoice_number: 'INV-2025-018',
+        amount: 560000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-06-05',
+        paid_date: '2025-06-12',
+        description: 'Developer Platform Integration',
+        line_items: [
+          { description: 'Developer Tools License', amount: 560000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_019',
+        customer_name: 'Twilio Inc.',
+        invoice_number: 'INV-2025-019',
+        amount: 1050000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-06-10',
+        paid_date: '2025-06-18',
+        description: 'Communication APIs Package',
+        line_items: [
+          { description: 'Communication APIs License', amount: 1050000, quantity: 1 }
+        ]
+      },
+      {
+        id: 'tabs_inv_020',
+        customer_name: 'Square Inc.',
+        invoice_number: 'INV-2025-020',
+        amount: 675000,
+        currency: 'USD',
+        status: 'paid',
+        invoice_date: '2025-06-15',
+        paid_date: '2025-06-22',
+        description: 'Payment Processing Integration',
+        line_items: [
+          { description: 'Payment Platform License', amount: 675000, quantity: 1 }
+        ]
       }
     ];
 
