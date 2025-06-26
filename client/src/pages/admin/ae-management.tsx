@@ -923,7 +923,14 @@ export default function AEManagementPage() {
             </DialogHeader>
 
             <Form {...commissionForm}>
-              <form onSubmit={commissionForm.handleSubmit((data) => assignCommissionMutation.mutate(data))} className="space-y-6">
+              <form onSubmit={commissionForm.handleSubmit((data) => {
+                // Clean up empty end date
+                const cleanData = {
+                  ...data,
+                  endDate: data.endDate === '' ? undefined : data.endDate
+                };
+                assignCommissionMutation.mutate(cleanData);
+              })} className="space-y-6">
                 <FormField
                   control={commissionForm.control}
                   name="commissionConfigId"

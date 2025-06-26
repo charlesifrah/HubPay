@@ -738,10 +738,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/ae-commission-assignments", adminOnly, async (req: Request, res: Response) => {
     try {
       const { insertAeCommissionAssignmentSchema } = await import("@shared/schema");
-      const validatedData = insertAeCommissionAssignmentSchema.parse({
+      
+      // Clean up the request body to handle optional dates
+      const cleanedBody = {
         ...req.body,
-        createdBy: req.user?.id
-      });
+        createdBy: req.user?.id,
+        endDate: req.body.endDate === '' || req.body.endDate === undefined ? null : req.body.endDate
+      };
+      
+      const validatedData = insertAeCommissionAssignmentSchema.parse(cleanedBody);
       const assignment = await getStorage().assignCommissionConfig(validatedData);
       res.status(201).json(assignment);
     } catch (error) {
