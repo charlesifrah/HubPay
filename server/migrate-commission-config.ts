@@ -14,20 +14,21 @@ async function migrateCommissionConfig() {
     const defaultConfig = await storage.createCommissionConfig({
       name: 'Standard Commission Structure',
       description: 'Default commission structure based on existing engine logic - 10% base rate with various bonuses',
-      baseCommissionRate: 0.10, // 10% base commission
-      pilotBonusUnpaid: 500,     // $500 for unpaid pilots
-      pilotBonusPaid25k: 2500,   // $2,500 for paid pilots $25K-$49,999
-      pilotBonusPaid50k: 5000,   // $5,000 for paid pilots $50K+
-      multiYearBonus: 10000,     // $10,000 for multi-year contracts with ACV > $250K
-      multiYearAcvThreshold: 250000, // ACV threshold for multi-year bonus
-      upfrontBonus: 15000,       // $15,000 for upfront payment terms
-      highValueCapThreshold: 8250000, // High-value deal cap at $8.25M
-      highValueReducedRate: 0.025,    // 2.5% rate after high-value cap
-      oteCapAmount: 1000000,     // $1M OTE cap
-      oteDeceleratorRate: 0.90,  // 90% rate after OTE cap
-      effectiveStartDate: '2025-01-01', // Start of current year
-      effectiveEndDate: null,    // No end date (ongoing)
-      isActive: true
+      status: 'active',
+      baseCommissionRate: '0.10', // 10% base commission
+      highValueCap: '8250000',     // High-value deal cap at $8.25M
+      highValueRate: '0.025',      // 2.5% rate after high-value cap
+      pilotBonusUnpaid: '500',     // $500 for unpaid pilots
+      pilotBonusLow: '2500',       // $2,500 for paid pilots $25K-$49,999
+      pilotBonusHigh: '5000',      // $5,000 for paid pilots $50K+
+      pilotBonusLowMin: '25000',   // Min amount for low pilot bonus
+      pilotBonusHighMin: '50000',  // Min amount for high pilot bonus
+      multiYearBonus: '10000',     // $10,000 for multi-year contracts
+      multiYearMinAcv: '250000',   // ACV threshold for multi-year bonus
+      upfrontBonus: '15000',       // $15,000 for upfront payment terms
+      oteCapAmount: '1000000',     // $1M OTE cap
+      oteDecelerator: '0.90',      // 90% rate after OTE cap
+      createdBy: 5 // Admin user ID
     });
     
     console.log('Default commission configuration created:', defaultConfig);
@@ -43,7 +44,8 @@ async function migrateCommissionConfig() {
         commissionConfigId: defaultConfig.id,
         startDate: '2025-01-01', // Start of current year
         endDate: null,           // No end date (ongoing)
-        isActive: true
+        isActive: true,
+        createdBy: 5 // Admin user ID
       });
       
       console.log(`Assigned commission config to AE ${ae.name} (ID: ${ae.id})`);
