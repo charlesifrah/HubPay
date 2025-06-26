@@ -114,6 +114,16 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   // Commission related links for Admins
   const adminCommissionLinks = [
     {
+      title: "Commission Configs",
+      href: "/admin/commission-configs",
+      icon: <DollarSign className="mr-3 h-5 w-5" />,
+    },
+    {
+      title: "AE Assignments",
+      href: "/admin/ae-assignments",
+      icon: <Users className="mr-3 h-5 w-5" />,
+    },
+    {
       title: "Approve Payouts",
       href: "/admin/payout-approval",
       icon: <ListChecks className="mr-3 h-5 w-5" />,
