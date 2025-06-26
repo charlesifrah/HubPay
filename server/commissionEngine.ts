@@ -1,4 +1,4 @@
-import { Contract, Invoice, Commission, InsertCommission } from "@shared/schema";
+import { Contract, Invoice, Commission, InsertCommission, CommissionConfig } from "@shared/schema";
 import { getStorage } from "./storage";
 
 export class CommissionEngine {
@@ -21,28 +21,34 @@ export class CommissionEngine {
       throw new Error('Contract not found');
     }
 
+    // Get the AE's active commission configuration
+    const commissionConfig = await getStorage().getActiveCommissionConfigForAE(contract.aeId);
+    if (!commissionConfig) {
+      throw new Error(`No active commission configuration found for AE ${contract.aeId}`);
+    }
+
     // Skip commission for non-commissionable revenue types
     if (invoice.revenueType === 'non-recurring' || 
         invoice.revenueType === 'service') {
       return this.createZeroCommission(invoice, contract.aeId);
     }
     
-    // Calculate base commission (10% of invoice amount)
+    // Calculate base commission using the AE's commission config
     const invoiceAmount = Number(invoice.amount);
-    let baseCommission = this.calculateBaseCommission(invoiceAmount, contract);
+    let baseCommission = this.calculateBaseCommission(invoiceAmount, contract, commissionConfig);
     
-    // Calculate bonuses
-    const pilotBonus = this.calculatePilotBonus(contract, invoiceAmount);
-    const multiYearBonus = this.calculateMultiYearBonus(contract);
-    const upfrontBonus = this.calculateUpfrontBonus(contract);
+    // Calculate bonuses using the AE's commission config
+    const pilotBonus = this.calculatePilotBonus(contract, invoiceAmount, commissionConfig);
+    const multiYearBonus = this.calculateMultiYearBonus(contract, commissionConfig);
+    const upfrontBonus = this.calculateUpfrontBonus(contract, commissionConfig);
     
     // Sum up all components
     let totalCommission = baseCommission + pilotBonus + multiYearBonus + upfrontBonus;
     
-    // Check for OTE cap
-    const oteApplied = await this.applyOTECap(contract.aeId, totalCommission);
+    // Check for OTE cap using the config's OTE cap
+    const oteApplied = await this.applyOTECap(contract.aeId, totalCommission, commissionConfig);
     if (oteApplied) {
-      totalCommission = totalCommission * this.OTE_DECELERATOR;
+      totalCommission = totalCommission * (commissionConfig.oteDecelerator / 100);
     }
     
     return {
@@ -58,41 +64,49 @@ export class CommissionEngine {
     };
   }
   
-  private calculateBaseCommission(invoiceAmount: number, contract: Contract): number {
-    // Apply the cap for high-value deals: 10% on first $8.25M, 2.5% after
-    const highValueCap = 8250000;
+  private calculateBaseCommission(invoiceAmount: number, contract: Contract, config: CommissionConfig): number {
+    const baseRate = Number(config.baseCommissionRate);
+    const highValueCap = Number(config.highValueCap || 8250000);
+    const highValueRate = Number(config.highValueRate || 0.025);
     
     if (Number(contract.contractValue) > highValueCap) {
       if (invoiceAmount <= highValueCap) {
-        return invoiceAmount * 0.1;
+        return invoiceAmount * baseRate;
       } else {
-        return (highValueCap * 0.1) + ((invoiceAmount - highValueCap) * 0.025);
+        return (highValueCap * baseRate) + ((invoiceAmount - highValueCap) * highValueRate);
       }
     }
     
-    // Standard 10% commission
-    return invoiceAmount * 0.1;
+    // Standard commission using config rate
+    return invoiceAmount * baseRate;
   }
   
-  private calculatePilotBonus(contract: Contract, invoiceAmount: number): number {
+  private calculatePilotBonus(contract: Contract, invoiceAmount: number, config: CommissionConfig): number {
     if (!contract.isPilot) return 0;
     
-    // $500 for unpaid pilots
-    if (invoiceAmount === 0) return 500;
+    // Use config values for pilot bonuses
+    if (invoiceAmount === 0) return Number(config.pilotBonusUnpaid || 500);
     
-    // $2,500 for paid pilots between $25K-$49,999
-    if (invoiceAmount >= 25000 && invoiceAmount < 50000) return 2500;
+    const lowMin = Number(config.pilotBonusLowMin || 25000);
+    const highMin = Number(config.pilotBonusHighMin || 50000);
     
-    // $5,000 for paid pilots $50K+
-    if (invoiceAmount >= 50000) return 5000;
+    if (invoiceAmount >= lowMin && invoiceAmount < highMin) {
+      return Number(config.pilotBonusLow || 2500);
+    }
+    
+    if (invoiceAmount >= highMin) {
+      return Number(config.pilotBonusHigh || 5000);
+    }
     
     return 0;
   }
   
-  private calculateMultiYearBonus(contract: Contract): number {
-    // $10,000 bonus for multi-year contracts with ACV > $250K
-    if (contract.contractLength > 1 && Number(contract.acv) > 250000) {
-      return 10000;
+  private calculateMultiYearBonus(contract: Contract, config: CommissionConfig): number {
+    const minAcv = Number(config.multiYearMinAcv || 250000);
+    const bonusAmount = Number(config.multiYearBonus || 10000);
+    
+    if (contract.contractLength > 1 && Number(contract.acv) > minAcv) {
+      return bonusAmount;
     }
     return 0;
   }
