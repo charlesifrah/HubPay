@@ -172,6 +172,28 @@ export default function CommissionConfigsPage() {
     },
   });
 
+  const migrateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/migrate-commission-config");
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/commission-configs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/ae-commission-assignments"] });
+      toast({
+        title: "Migration Completed",
+        description: "Successfully created default commission configuration and assigned it to all AEs.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Migration Failed",
+        description: "Failed to migrate commission configuration.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredConfigs = configs?.filter((config: any) =>
     config.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     config.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -245,10 +267,31 @@ export default function CommissionConfigsPage() {
                 Create and manage commission configurations that can be assigned to Account Executives
               </CardDescription>
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Configuration
-            </Button>
+            <div className="flex gap-2">
+              {(!configs || configs.length === 0) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => migrateMutation.mutate()}
+                  disabled={migrateMutation.isPending}
+                >
+                  {migrateMutation.isPending ? (
+                    <>
+                      <Settings className="mr-2 h-4 w-4 animate-spin" />
+                      Migrating...
+                    </>
+                  ) : (
+                    <>
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      Migrate Current Settings
+                    </>
+                  )}
+                </Button>
+              )}
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Configuration
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

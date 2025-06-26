@@ -708,6 +708,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Commission configuration migration endpoint
+  app.post("/api/admin/migrate-commission-config", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const { migrateCommissionConfig } = await import('./migrate-commission-config');
+      await migrateCommissionConfig();
+      res.json({ success: true, message: 'Commission configuration migration completed successfully' });
+    } catch (error) {
+      console.error('Commission migration error:', error);
+      res.status(500).json({ error: 'Failed to migrate commission configuration' });
+    }
+  });
+
   // AE Commission Assignment endpoints
   app.post("/api/admin/ae-commission-assignments", adminOnly, async (req: Request, res: Response) => {
     try {
