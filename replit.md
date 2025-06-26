@@ -129,6 +129,7 @@ This is a full-stack sales commission management system built with React, Expres
 - June 26, 2025. Commission configuration system completed: Added database schema for flexible commission structures, admin interface for creating/managing configurations, AE assignment interface, and successfully migrated existing commission logic into "Standard Commission Structure" configuration assigned to current AEs
 - June 26, 2025. Simplified commission assignment: Integrated commission configuration directly into AE Management page with "Set Commission" button, eliminating separate AE Assignments page complexity. Fixed date validation for optional end dates.
 - June 26, 2025. Removed AE Assignments page: Eliminated redundant AE Assignments page and navigation since commission configuration functionality is now fully integrated into AE Management page with improved UX showing current config details and edit capability.
+- June 26, 2025. Commission engine integration: Updated commission calculation engine to use AE's active commission configuration instead of hardcoded values. All commission calculations (base rate, bonuses, OTE cap) now dynamically use configured values from assigned commission structures. Fixed Tabs invoice sync functionality and created contracts for major enterprise customers.
 
 ## User Preferences
 
