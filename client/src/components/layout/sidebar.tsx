@@ -91,6 +91,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       href: "/admin/admin-management",
       icon: <User className="mr-3 h-5 w-5" />,
     },
+    {
+      title: "Commission Configs",
+      href: "/admin/commission-configs",
+      icon: <DollarSign className="mr-3 h-5 w-5" />,
+    },
   ];
   
   // Contract related links for Admins
@@ -117,11 +122,6 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Commission Configs",
       href: "/admin/commission-configs",
       icon: <DollarSign className="mr-3 h-5 w-5" />,
-    },
-    {
-      title: "AE Assignments",
-      href: "/admin/ae-assignments",
-      icon: <Users className="mr-3 h-5 w-5" />,
     },
     {
       title: "Approve Payouts",

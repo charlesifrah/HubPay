@@ -20,7 +20,6 @@ import Reports from "@/pages/admin/reports";
 import AEManagement from "@/pages/admin/ae-management";
 import AdminManagement from "@/pages/admin/admin-management";
 import CommissionConfigs from "@/pages/admin/commission-configs";
-import AEAssignments from "@/pages/admin/ae-assignments";
 
 // AE pages
 import AEDashboard from "@/pages/ae/dashboard";
@@ -43,7 +42,6 @@ function Router() {
       <ProtectedRoute path="/admin/reports" component={Reports} adminOnly={true} />
       <ProtectedRoute path="/admin/contracts" component={ContractsPage} adminOnly={true} />
       <ProtectedRoute path="/admin/commission-configs" component={CommissionConfigs} adminOnly={true} />
-      <ProtectedRoute path="/admin/ae-assignments" component={AEAssignments} adminOnly={true} />
       
       {/* AE Routes */}
       <ProtectedRoute path="/ae/dashboard" component={AEDashboard} />
