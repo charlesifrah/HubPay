@@ -902,6 +902,114 @@ export default function AEManagementPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Commission Configuration Dialog */}
+        <Dialog 
+          open={showCommissionDialog} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowCommissionDialog(false);
+              setSelectedAEForCommission(null);
+              commissionForm.reset();
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Commission Configuration</DialogTitle>
+              <DialogDescription>
+                Assign a commission configuration to {selectedAEForCommission?.name}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Form {...commissionForm}>
+              <form onSubmit={commissionForm.handleSubmit((data) => assignCommissionMutation.mutate(data))} className="space-y-6">
+                <FormField
+                  control={commissionForm.control}
+                  name="commissionConfigId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Commission Configuration</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a commission configuration" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.isArray(commissionConfigs) && commissionConfigs.map((config: any) => (
+                            <SelectItem key={config.id} value={config.id.toString()}>
+                              {config.name} - {config.baseRate}% base rate
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={commissionForm.control}
+                  name="effectiveDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Effective Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={commissionForm.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Leave empty if this configuration has no end date.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowCommissionDialog(false);
+                      setSelectedAEForCommission(null);
+                      commissionForm.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={assignCommissionMutation.isPending}
+                  >
+                    {assignCommissionMutation.isPending && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
+                    Assign Configuration
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </Layout>
   );
