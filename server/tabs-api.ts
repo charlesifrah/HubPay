@@ -594,7 +594,7 @@ export function setupTabsApiRoutes(app: any) {
       const { tabsInvoiceId, contractId } = req.body;
       
       // First fetch the specific invoice from Tabs
-      const allInvoices = await tabsApiService.fetchPaidInvoices();
+      const allInvoices = await tabsApiService.fetchPaidInvoices({ limit: 50 });
       const tabsInvoice = allInvoices.data.find(inv => inv.id === tabsInvoiceId);
       
       if (!tabsInvoice) {
