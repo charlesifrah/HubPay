@@ -57,7 +57,8 @@ export default function InvoicesPage() {
     data: TabsInvoice[];
     pagination?: { page: number; per_page: number; total: number };
   }>({
-    queryKey: ["/api/tabs/invoices/paid"],
+    queryKey: ["/api/tabs/invoices/paid", { limit: 50 }],
+    queryFn: () => fetch("/api/tabs/invoices/paid?limit=50").then(res => res.json()),
     enabled: !!user,
   });
 
