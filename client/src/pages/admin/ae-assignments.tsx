@@ -76,11 +76,6 @@ export default function AEAssignmentsPage() {
 
   const { data: assignments = [], isLoading } = useQuery({
     queryKey: ["/api/admin/ae-commission-assignments", selectedAE],
-    queryFn: async () => {
-      if (!selectedAE) return [];
-      const response = await fetch(`/api/admin/ae-commission-assignments/${selectedAE}`);
-      return await response.json();
-    },
     enabled: !!selectedAE,
   });
 
