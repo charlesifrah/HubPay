@@ -67,7 +67,7 @@ export default function AEAssignmentsPage() {
   });
 
   const { data: aes = [] } = useQuery({
-    queryKey: ["/api/aes"],
+    queryKey: ["/api/admin/account-executives"],
   });
 
   const { data: configs = [] } = useQuery({
