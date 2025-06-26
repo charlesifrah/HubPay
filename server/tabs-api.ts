@@ -392,7 +392,7 @@ class TabsApiService {
 
     // Apply pagination
     const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
+    const limit = filters?.limit || 50;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
