@@ -592,12 +592,17 @@ export function setupTabsApiRoutes(app: any) {
   app.post('/api/tabs/invoices/sync', async (req: Request, res: Response) => {
     try {
       const { tabsInvoiceId, contractId } = req.body;
+      console.log('Sync request received:', { tabsInvoiceId, contractId });
       
       // First fetch the specific invoice from Tabs
       const allInvoices = await tabsApiService.fetchPaidInvoices({ limit: 50 });
+      console.log('Available invoice IDs:', allInvoices.data.map(inv => inv.id));
+      console.log('Looking for invoice ID:', tabsInvoiceId);
+      
       const tabsInvoice = allInvoices.data.find(inv => inv.id === tabsInvoiceId);
       
       if (!tabsInvoice) {
+        console.log('Invoice not found. Available IDs:', allInvoices.data.map(inv => inv.id));
         return res.status(404).json({ error: 'Invoice not found in Tabs' });
       }
 
