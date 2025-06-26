@@ -64,6 +64,7 @@ type Payout = {
   approvedAt: string;
   approvedByName: string;
   createdAt: string;
+  oteApplied: boolean;
 };
 
 export default function PayoutsPage() {
@@ -306,91 +307,111 @@ export default function PayoutsPage() {
         </CardContent>
       </Card>
 
-      {/* Details Dialog */}
-      <Dialog open={!!viewDetails} onOpenChange={(open) => !open && setViewDetails(null)}>
-        <DialogContent className="max-w-2xl">
+      {/* Payout Details Dialog */}
+      <Dialog open={viewDetails !== null} onOpenChange={(open) => !open && setViewDetails(null)}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Payout Details</DialogTitle>
             <DialogDescription>
-              {viewDetails?.contractClientName} - ID: {viewDetails?.id}
+              Detailed breakdown of the commission calculation
             </DialogDescription>
           </DialogHeader>
-          
           {viewDetails && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Client</h4>
-                  <p className="text-base">{viewDetails.contractClientName}</p>
+            <div className="space-y-4 py-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Client:</span>
+                <span className="text-sm">{viewDetails.contractClientName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Account Executive:</span>
+                <span className="text-sm">{viewDetails.aeName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Invoice Amount:</span>
+                <span className="text-sm">${Number(viewDetails.invoiceAmount).toLocaleString()}</span>
+              </div>
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">Base Commission:</span>
+                  <span className="text-sm">${Number(viewDetails.baseCommission).toLocaleString()}</span>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Type</h4>
-                  <p className="text-base">{viewDetails.contractType}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Account Executive</h4>
-                  <p className="text-base">{viewDetails.aeName}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Invoice Amount</h4>
-                  <p className="text-base">${Number(viewDetails.invoiceAmount).toLocaleString()}</p>
-                </div>
+                {Number(viewDetails.pilotBonus) > 0 && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm font-medium">Pilot Bonus:</span>
+                    <span className="text-sm">${Number(viewDetails.pilotBonus).toLocaleString()}</span>
+                  </div>
+                )}
+                {Number(viewDetails.multiYearBonus) > 0 && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm font-medium">Multi-Year Bonus:</span>
+                    <span className="text-sm">${Number(viewDetails.multiYearBonus).toLocaleString()}</span>
+                  </div>
+                )}
+                {Number(viewDetails.upfrontBonus) > 0 && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-sm font-medium">Upfront Payment Bonus:</span>
+                    <span className="text-sm">${Number(viewDetails.upfrontBonus).toLocaleString()}</span>
+                  </div>
+                )}
+                
+                {/* Calculate subtotal before OTE cap */}
+                {(() => {
+                  const subtotal = Number(viewDetails.baseCommission) + 
+                                 Number(viewDetails.pilotBonus || 0) + 
+                                 Number(viewDetails.multiYearBonus || 0) + 
+                                 Number(viewDetails.upfrontBonus || 0);
+                  const finalTotal = Number(viewDetails.totalCommission);
+                  const isOTEApplied = viewDetails.oteApplied || Math.abs(subtotal - finalTotal) > 1;
+                  
+                  return isOTEApplied ? (
+                    <>
+                      <div className="flex justify-between mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-sm font-medium">Subtotal:</span>
+                        <span className="text-sm">${subtotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between mt-2">
+                        <span className="text-sm font-medium text-orange-600">OTE Cap Applied (90%):</span>
+                        <span className="text-sm text-orange-600">-${(subtotal - finalTotal).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                        <div className="text-xs text-orange-800">
+                          <div className="font-semibold mb-1">OTE Cap Explanation:</div>
+                          <div>This AE has approached their $1M annual On-Target Earnings (OTE) cap. Commission amounts above this threshold are reduced by a 90% decelerator to manage compensation limits.</div>
+                        </div>
+                      </div>
+                    </>
+                  ) : null;
+                })()}
+              </div>
+              <div className="flex justify-between border-t border-gray-200 pt-4 font-medium">
+                <span className="text-sm">Final Commission:</span>
+                <span className="text-sm text-green-600">${Number(viewDetails.totalCommission).toLocaleString()}</span>
               </div>
               
-              <Separator />
-              
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Commission Details</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Base Commission</h5>
-                    <p className="text-base">${Number(viewDetails.baseCommission).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Pilot Bonus</h5>
-                    <p className="text-base">${Number(viewDetails.pilotBonus).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Multi-Year Bonus</h5>
-                    <p className="text-base">${Number(viewDetails.multiYearBonus).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-medium text-gray-500">Upfront Bonus</h5>
-                    <p className="text-base">${Number(viewDetails.upfrontBonus).toLocaleString()}</p>
-                  </div>
+              {/* Additional payout information */}
+              <div className="border-t border-gray-200 pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">Status:</span>
+                  <span className="text-sm">
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      {viewDetails.status}
+                    </Badge>
+                  </span>
                 </div>
-                <div className="mt-4 bg-gray-50 p-3 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <h5 className="font-medium">Total Commission</h5>
-                    <p className="text-lg font-semibold">${Number(viewDetails.totalCommission).toLocaleString()}</p>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">Approved By:</span>
+                  <span className="text-sm">{viewDetails.approvedByName}</span>
                 </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Status</h4>
-                  <p className="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {viewDetails.status}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Approved By</h4>
-                  <p className="text-base">{viewDetails.approvedByName}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Created Date</h4>
-                  <p className="text-base">{new Date(viewDetails.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Approved Date</h4>
-                  <p className="text-base">{new Date(viewDetails.approvedAt).toLocaleDateString()}</p>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium">Approved Date:</span>
+                  <span className="text-sm">{new Date(viewDetails.approvedAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
           )}
+          <div className="flex justify-end pt-4">
+            <Button onClick={() => setViewDetails(null)}>Close</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </Layout>
