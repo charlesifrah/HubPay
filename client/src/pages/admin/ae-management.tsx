@@ -68,6 +68,13 @@ const updateAEFormSchema = z.object({
   status: z.enum(['active', 'suspended', 'pending', 'expired']).optional(),
 });
 
+const assignCommissionFormSchema = z.object({
+  aeId: z.number(),
+  commissionConfigId: z.number(),
+  effectiveDate: z.string(),
+  endDate: z.string().optional(),
+});
+
 // Types for the page
 type BaseEntry = {
   id: number;
@@ -92,6 +99,8 @@ export default function AEManagementPage() {
   const [editAE, setEditAE] = useState<AccountExecutive | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [showCommissionDialog, setShowCommissionDialog] = useState(false);
+  const [selectedAEForCommission, setSelectedAEForCommission] = useState<AccountExecutive | null>(null);
   
   // Get all AEs
   const { 
@@ -105,6 +114,11 @@ export default function AEManagementPage() {
       const res = await apiRequest('GET', '/api/admin/account-executives');
       return await res.json();
     },
+  });
+
+  // Get commission configurations
+  const { data: commissionConfigs = [] } = useQuery({
+    queryKey: ['/api/admin/commission-configs'],
   });
 
   // Form for inviting new AE
@@ -158,6 +172,48 @@ export default function AEManagementPage() {
       editForm.setValue('status', editAE.status);
     }
   }, [editAE, editForm]);
+
+  // Form for assigning commission configuration
+  const commissionForm = useForm<z.infer<typeof assignCommissionFormSchema>>({
+    resolver: zodResolver(assignCommissionFormSchema),
+    defaultValues: {
+      aeId: 0,
+      commissionConfigId: 0,
+      effectiveDate: new Date().toISOString().split('T')[0],
+      endDate: '',
+    },
+  });
+
+  // Set commission form values when an AE is selected
+  React.useEffect(() => {
+    if (selectedAEForCommission) {
+      commissionForm.setValue('aeId', selectedAEForCommission.id);
+    }
+  }, [selectedAEForCommission, commissionForm]);
+
+  // Mutation for assigning commission configuration
+  const assignCommissionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof assignCommissionFormSchema>) => {
+      const res = await apiRequest('POST', '/api/admin/ae-commission-assignments', data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Commission configuration assigned',
+        description: 'The commission configuration has been successfully assigned.',
+      });
+      setShowCommissionDialog(false);
+      setSelectedAEForCommission(null);
+      commissionForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to assign commission configuration',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Mutation for updating an AE
   const updateAEMutation = useMutation({
@@ -745,6 +801,7 @@ export default function AEManagementPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Commission Config</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -765,6 +822,22 @@ export default function AEManagementPage() {
                         <Badge variant="outline" className={getStatusBadgeVariant(entry.status)}>
                           {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {entry.type === 'user' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAEForCommission(entry as AccountExecutive);
+                              setShowCommissionDialog(true);
+                            }}
+                          >
+                            Set Commission
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
                       </TableCell>
                       <TableCell>{formatDate(new Date(entry.createdAt))}</TableCell>
                       <TableCell className="text-right">
