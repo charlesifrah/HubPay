@@ -121,6 +121,15 @@ export default function AEManagementPage() {
     queryKey: ['/api/admin/commission-configs'],
   });
 
+  // Get current commission assignments for all AEs
+  const { data: aeAssignments = [] } = useQuery({
+    queryKey: ['/api/admin/all-ae-assignments'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/admin/ae-commission-assignments');
+      return await res.json();
+    },
+  });
+
   // Form for inviting new AE
   const inviteForm = useForm<z.infer<typeof inviteFormSchema>>({
     resolver: zodResolver(inviteFormSchema),
@@ -825,16 +834,42 @@ export default function AEManagementPage() {
                       </TableCell>
                       <TableCell>
                         {entry.type === 'user' ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedAEForCommission(entry as AccountExecutive);
-                              setShowCommissionDialog(true);
-                            }}
-                          >
-                            Set Commission
-                          </Button>
+                          (() => {
+                            const assignment = Array.isArray(aeAssignments) && aeAssignments.find((a: any) => a.aeId === entry.id);
+                            return assignment ? (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium">{assignment.config?.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {assignment.config?.baseRate}% base rate
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAEForCommission(entry as AccountExecutive);
+                                    // Pre-fill form with current assignment
+                                    commissionForm.setValue('commissionConfigId', assignment.commissionConfigId);
+                                    commissionForm.setValue('effectiveDate', assignment.effectiveDate);
+                                    commissionForm.setValue('endDate', assignment.endDate || '');
+                                    setShowCommissionDialog(true);
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedAEForCommission(entry as AccountExecutive);
+                                  setShowCommissionDialog(true);
+                                }}
+                              >
+                                Set Commission
+                              </Button>
+                            );
+                          })()
                         ) : (
                           <span className="text-muted-foreground text-sm">-</span>
                         )}

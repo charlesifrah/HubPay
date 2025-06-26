@@ -103,6 +103,7 @@ export interface IStorage {
   assignCommissionConfig(assignment: InsertAeCommissionAssignment): Promise<AeCommissionAssignment>;
   getActiveCommissionConfigForAE(aeId: number): Promise<CommissionConfig | undefined>;
   getCommissionAssignmentsForAE(aeId: number): Promise<AeCommissionAssignment[]>;
+  getAllCommissionAssignments(): Promise<any[]>;
   updateCommissionAssignment(id: number, updates: Partial<AeCommissionAssignment>): Promise<AeCommissionAssignment>;
 
   // Session store
@@ -1034,6 +1035,31 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(aeCommissionAssignments)
       .where(eq(aeCommissionAssignments.aeId, aeId))
+      .orderBy(desc(aeCommissionAssignments.effectiveDate));
+  }
+
+  async getAllCommissionAssignments(): Promise<any[]> {
+    return db
+      .select({
+        id: aeCommissionAssignments.id,
+        aeId: aeCommissionAssignments.aeId,
+        commissionConfigId: aeCommissionAssignments.commissionConfigId,
+        effectiveDate: aeCommissionAssignments.effectiveDate,
+        endDate: aeCommissionAssignments.endDate,
+        config: {
+          id: commissionConfigs.id,
+          name: commissionConfigs.name,
+          baseRate: commissionConfigs.baseCommissionRate,
+        },
+        ae: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        }
+      })
+      .from(aeCommissionAssignments)
+      .leftJoin(commissionConfigs, eq(aeCommissionAssignments.commissionConfigId, commissionConfigs.id))
+      .leftJoin(users, eq(aeCommissionAssignments.aeId, users.id))
       .orderBy(desc(aeCommissionAssignments.effectiveDate));
   }
 

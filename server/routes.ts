@@ -766,6 +766,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/ae-commission-assignments", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const assignments = await getStorage().getAllCommissionAssignments();
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching all commission assignments:", error);
+      res.status(500).json({ error: "Failed to fetch commission assignments" });
+    }
+  });
+
   app.get("/api/ae/commission-config", aeOrAdminOnly, async (req: Request, res: Response) => {
     try {
       const aeId = req.user?.role === 'admin' ? parseInt(req.query.aeId as string) : req.user?.id;
