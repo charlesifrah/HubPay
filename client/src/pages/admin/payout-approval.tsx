@@ -57,6 +57,7 @@ type Commission = {
   multiYearBonus: string;
   upfrontBonus: string;
   totalCommission: string;
+  oteApplied: boolean;
   createdAt: string;
 };
 
@@ -369,6 +370,15 @@ export default function PayoutApproval() {
                         <div className="flex space-x-2 justify-end">
                           <Button 
                             size="sm"
+                            variant="outline"
+                            className="h-8"
+                            onClick={() => setViewDetails(commission)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Details
+                          </Button>
+                          <Button 
+                            size="sm"
                             className="h-8 bg-green-600 hover:bg-green-700"
                             onClick={() => handleApprove(commission.id)}
                             disabled={approveMutation.isPending}
@@ -422,7 +432,7 @@ export default function PayoutApproval() {
               </div>
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium">Base Commission (10%):</span>
+                  <span className="text-sm font-medium">Base Commission:</span>
                   <span className="text-sm">${Number(viewDetails.baseCommission).toLocaleString()}</span>
                 </div>
                 {Number(viewDetails.pilotBonus) > 0 && (
@@ -443,10 +453,39 @@ export default function PayoutApproval() {
                     <span className="text-sm">${Number(viewDetails.upfrontBonus).toLocaleString()}</span>
                   </div>
                 )}
+                
+                {/* Calculate subtotal before OTE cap */}
+                {(() => {
+                  const subtotal = Number(viewDetails.baseCommission) + 
+                                 Number(viewDetails.pilotBonus || 0) + 
+                                 Number(viewDetails.multiYearBonus || 0) + 
+                                 Number(viewDetails.upfrontBonus || 0);
+                  const finalTotal = Number(viewDetails.totalCommission);
+                  const isOTEApplied = viewDetails.oteApplied || Math.abs(subtotal - finalTotal) > 1;
+                  
+                  return isOTEApplied ? (
+                    <>
+                      <div className="flex justify-between mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-sm font-medium">Subtotal:</span>
+                        <span className="text-sm">${subtotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between mt-2">
+                        <span className="text-sm font-medium text-orange-600">OTE Cap Applied (90%):</span>
+                        <span className="text-sm text-orange-600">-${(subtotal - finalTotal).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                        <div className="text-xs text-orange-800">
+                          <div className="font-semibold mb-1">OTE Cap Explanation:</div>
+                          <div>This AE has approached their $1M annual On-Target Earnings (OTE) cap. Commission amounts above this threshold are reduced by a 90% decelerator to manage compensation limits.</div>
+                        </div>
+                      </div>
+                    </>
+                  ) : null;
+                })()}
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-4 font-medium">
-                <span className="text-sm">Total Commission:</span>
-                <span className="text-sm">${Number(viewDetails.totalCommission).toLocaleString()}</span>
+                <span className="text-sm">Final Commission:</span>
+                <span className="text-sm text-green-600">${Number(viewDetails.totalCommission).toLocaleString()}</span>
               </div>
             </div>
           )}
