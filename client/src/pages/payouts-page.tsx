@@ -295,7 +295,7 @@ export default function PayoutsPage() {
                           className="h-8"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View
+                          Details
                         </Button>
                       </TableCell>
                     </TableRow>
