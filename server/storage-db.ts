@@ -2,7 +2,7 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { LoginUser, InsertUser, User, InsertContract, Contract, Invoice, InsertInvoice, Commission, InsertCommission, ContractWithAE, InvoiceWithDetails, CommissionWithDetails, CommissionConfig, InsertCommissionConfig, AeCommissionAssignment, InsertAeCommissionAssignment } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sql, SQL, or } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, SQL, or, isNull } from "drizzle-orm";
 import { users, contracts, invoices, commissions, invitations, commissionConfigs, aeCommissionAssignments } from "@shared/schema";
 import { pool } from "./db";
 
@@ -1020,7 +1020,7 @@ export class DatabaseStorage implements IStorage {
           eq(aeCommissionAssignments.aeId, aeId),
           lte(aeCommissionAssignments.effectiveDate, currentDate),
           or(
-            eq(aeCommissionAssignments.endDate, null),
+            sql`${aeCommissionAssignments.endDate} IS NULL`,
             gte(aeCommissionAssignments.endDate, currentDate)
           )
         )
