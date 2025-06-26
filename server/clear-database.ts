@@ -4,7 +4,7 @@ import { Response, Request, NextFunction } from 'express';
 import { getStorage } from './storage';
 
 /**
- * Clears all contracts, invoices, and commissions from the database.
+ * Clears all contracts, invoices, and payouts (pending and approved commissions) from the database.
  * Middleware for admin-only API endpoint.
  */
 export async function clearDatabase(req: Request, res: Response, next: NextFunction) {
@@ -25,10 +25,10 @@ export async function clearDatabase(req: Request, res: Response, next: NextFunct
     
     console.log('Starting database clear operation...');
     
-    // Delete commissions first (due to foreign key constraints)
-    console.log('Deleting commissions...');
-    const deletedCommissions = await db.delete(commissions).returning();
-    console.log(`Deleted ${deletedCommissions.length} commissions`);
+    // Delete payouts/commissions first (due to foreign key constraints)
+    console.log('Deleting all payouts (pending and approved commissions)...');
+    const deletedPayouts = await db.delete(commissions).returning();
+    console.log(`Deleted ${deletedPayouts.length} payouts`);
     
     // Then delete invoices
     console.log('Deleting invoices...');
@@ -45,7 +45,7 @@ export async function clearDatabase(req: Request, res: Response, next: NextFunct
     return res.status(200).json({
       message: 'Database cleared successfully',
       deletedCounts: {
-        commissions: deletedCommissions.length,
+        payouts: deletedPayouts.length,
         invoices: deletedInvoices.length,
         contracts: deletedContracts.length
       }

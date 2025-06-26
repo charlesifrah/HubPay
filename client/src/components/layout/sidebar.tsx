@@ -207,7 +207,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       // Show success toast with deleted counts
       toast({
         title: "Database cleared successfully",
-        description: `Deleted ${result.deletedCounts.contracts} contracts, ${result.deletedCounts.invoices} invoices, and ${result.deletedCounts.commissions} commissions.`,
+        description: `Deleted ${result.deletedCounts.contracts} contracts, ${result.deletedCounts.invoices} invoices, and ${result.deletedCounts.payouts} payouts.`,
         variant: "default",
       });
       
@@ -307,7 +307,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action will permanently delete all contracts, invoices, and commissions from the database.
+                    This action will permanently delete all contracts, invoices, and payouts (both pending and approved) from the database.
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>

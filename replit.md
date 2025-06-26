@@ -130,6 +130,7 @@ This is a full-stack sales commission management system built with React, Expres
 - June 26, 2025. Simplified commission assignment: Integrated commission configuration directly into AE Management page with "Set Commission" button, eliminating separate AE Assignments page complexity. Fixed date validation for optional end dates.
 - June 26, 2025. Removed AE Assignments page: Eliminated redundant AE Assignments page and navigation since commission configuration functionality is now fully integrated into AE Management page with improved UX showing current config details and edit capability.
 - June 26, 2025. Commission engine integration: Updated commission calculation engine to use AE's active commission configuration instead of hardcoded values. All commission calculations (base rate, bonuses, OTE cap) now dynamically use configured values from assigned commission structures. Fixed Tabs invoice sync functionality and created contracts for major enterprise customers.
+- June 26, 2025. Enhanced payout details modals: Added comprehensive commission breakdown modals to both Approve Payouts and View Payouts pages with OTE decelerator detection and explanation. Updated Clear Database functionality to properly describe clearing contracts, invoices, and all payouts (pending and approved).
 
 ## User Preferences
 
