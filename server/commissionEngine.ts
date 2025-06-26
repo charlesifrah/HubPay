@@ -3,8 +3,6 @@ import { getStorage } from "./storage";
 
 export class CommissionEngine {
   private static instance: CommissionEngine;
-  private OTE_CAP = 1000000; // $1M cap
-  private OTE_DECELERATOR = 0.9; // 90% of standard rate after cap
 
   private constructor() {}
 
@@ -48,7 +46,8 @@ export class CommissionEngine {
     // Check for OTE cap using the config's OTE cap
     const oteApplied = await this.applyOTECap(contract.aeId, totalCommission, commissionConfig);
     if (oteApplied) {
-      totalCommission = totalCommission * (commissionConfig.oteDecelerator / 100);
+      const decelerator = Number(commissionConfig.oteDecelerator || 0.9);
+      totalCommission = totalCommission * decelerator;
     }
     
     return {
@@ -111,22 +110,25 @@ export class CommissionEngine {
     return 0;
   }
   
-  private calculateUpfrontBonus(contract: Contract): number {
-    // $15,000 bonus if Year 1 is paid upfront
+  private calculateUpfrontBonus(contract: Contract, config: CommissionConfig): number {
+    const bonusAmount = Number(config.upfrontBonus || 15000);
+    
     if (contract.paymentTerms === 'upfront') {
-      return 15000;
+      return bonusAmount;
     }
     return 0;
   }
   
-  private async applyOTECap(aeId: number, newCommission: number): Promise<boolean> {
+  private async applyOTECap(aeId: number, newCommission: number, config: CommissionConfig): Promise<boolean> {
+    const oteCap = Number(config.oteCapAmount || 1000000);
+    
     // Get YTD commissions for this AE
     const ytdCommissions = await getStorage().getYTDCommissionsForAE(aeId);
     const currentYtdTotal = ytdCommissions.reduce((sum, commission) => 
       sum + Number(commission.totalCommission), 0);
     
     // Check if adding this commission would exceed the OTE cap
-    return (currentYtdTotal + newCommission) > this.OTE_CAP;
+    return (currentYtdTotal + newCommission) > oteCap;
   }
   
   private createZeroCommission(invoice: Invoice, aeId: number): InsertCommission {
