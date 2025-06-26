@@ -708,15 +708,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug migration endpoint
+  app.post("/api/admin/debug-migration", adminOnly, async (req: Request, res: Response) => {
+    try {
+      const { debugMigration } = await import('./debug-migration');
+      await debugMigration();
+      res.json({ success: true, message: 'Debug migration completed successfully' });
+    } catch (error) {
+      console.error('Debug migration error:', error);
+      res.status(500).json({ error: 'Debug migration failed', details: error.message });
+    }
+  });
+
   // Commission configuration migration endpoint
   app.post("/api/admin/migrate-commission-config", adminOnly, async (req: Request, res: Response) => {
     try {
+      console.log('Starting commission configuration migration...');
       const { migrateCommissionConfig } = await import('./migrate-commission-config');
       await migrateCommissionConfig();
+      console.log('Migration completed successfully');
       res.json({ success: true, message: 'Commission configuration migration completed successfully' });
     } catch (error) {
-      console.error('Commission migration error:', error);
-      res.status(500).json({ error: 'Failed to migrate commission configuration' });
+      console.error('Commission migration error details:', error);
+      res.status(500).json({ error: 'Failed to migrate commission configuration', details: error.message });
     }
   });
 
