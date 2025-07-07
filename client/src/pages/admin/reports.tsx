@@ -203,7 +203,7 @@ export default function Reports() {
             {/* Filters Panel */}
             <div className="md:col-span-1 space-y-4">
               <div>
-                <h4 className="text-base font-medium text-gray-900">Filters</h4>
+                <h4 className="text-base font-medium text-gray-900">Filtery</h4>
                 <p className="mt-1 text-sm text-gray-500">Narrow down your report data</p>
               </div>
 
