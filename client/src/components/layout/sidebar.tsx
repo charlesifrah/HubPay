@@ -294,9 +294,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         {isAdmin && (
           <>
             <Button
-              variant="destructive"
+              variant="default"
               onClick={() => setClearDatabaseDialogOpen(true)}
-              className="w-full justify-start"
+              className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Clear Database
