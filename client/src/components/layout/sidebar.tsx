@@ -296,10 +296,10 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             <Button
               variant="default"
               onClick={() => setClearDatabaseDialogOpen(true)}
-              className="w-full justify-start bg-yellow-600 hover:bg-purple-700 text-white border-purple-600"
+              className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Clear thee Database
+              Clear Database
             </Button>
             
             <AlertDialog open={clearDatabaseDialogOpen} onOpenChange={setClearDatabaseDialogOpen}>
