@@ -299,7 +299,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
               className="w-full justify-start bg-green-600 hover:bg-green-700 text-white border-green-600"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Clear Database
+              Clear Database (TEST)
             </Button>
             
             <AlertDialog open={clearDatabaseDialogOpen} onOpenChange={setClearDatabaseDialogOpen}>
